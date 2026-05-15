@@ -1,0 +1,263 @@
+/* ─── PATCH CSS — append to main.css ─────────────────────────────────────────
+   Add these styles to static/css/main.css (or include as separate file)
+   ──────────────────────────────────────────────────────────────────────────── */
+
+/* ── ADMIN SIDEBAR v2 ────────────────────────────────────────────────────── */
+.admin-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 15px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  background: rgba(232,93,38,0.08);
+  border: 1px solid rgba(232,93,38,0.2);
+  border-radius: 10px;
+}
+.admin-sidebar-footer {
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid var(--card-border);
+}
+.nav-badge {
+  margin-left: auto;
+  background: var(--orange);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 100px;
+  min-width: 18px;
+  text-align: center;
+}
+
+/* ── ADMIN CONTENT v2 ────────────────────────────────────────────────────── */
+.admin-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 28px;
+}
+.admin-page-header h1 {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  margin-bottom: 4px;
+}
+.admin-page-header p {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+.admin-two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+.admin-table-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.admin-table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--card-border);
+}
+.admin-table-header h2 {
+  font-size: 15px;
+  font-weight: 600;
+}
+.admin-link {
+  font-size: 13px;
+  color: var(--orange2);
+}
+
+/* ── STAT CARD v2 ────────────────────────────────────────────────────────── */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 14px;
+  margin-bottom: 28px;
+}
+.stat-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.stat-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.stat-number {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--orange);
+  letter-spacing: -1px;
+  line-height: 1;
+}
+.stat-label {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+.stat-trend {
+  font-size: 11px;
+  font-weight: 600;
+}
+.stat-trend.up { color: #4ade80; }
+.stat-trend.down { color: #fbbf24; }
+
+/* ── LOG ACTION BADGE ────────────────────────────────────────────────────── */
+.log-action {
+  display: inline-block;
+  font-size: 11px;
+  font-family: monospace;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--card-border);
+  padding: 2px 8px;
+  border-radius: 4px;
+  color: var(--orange2);
+}
+
+/* ── MINI AVATAR ─────────────────────────────────────────────────────────── */
+.mini-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--orange), var(--orange3));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+/* ── ANALYTICS BARS ──────────────────────────────────────────────────────── */
+.analytics-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+.bar-list {
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.bar-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.bar-label {
+  width: 110px;
+  font-size: 12px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+.bar-track {
+  flex: 1;
+  height: 6px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.bar-fill {
+  height: 100%;
+  background: var(--orange);
+  border-radius: 3px;
+  transition: width .6s ease;
+  min-width: 4px;
+}
+.bar-val {
+  width: 28px;
+  text-align: right;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/* ── ADMIN WRAP FLEX for sidebar ─────────────────────────────────────────── */
+.admin-wrap {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  min-height: calc(100vh - 81px);
+}
+.admin-sidebar {
+  border-right: 1px solid var(--card-border);
+  padding: 16px 12px;
+  background: rgba(13,12,11,0.6);
+  display: flex;
+  flex-direction: column;
+}
+.admin-content {
+  padding: 32px 40px;
+  overflow-y: auto;
+}
+
+/* ── DEAL STATUS COLORS ──────────────────────────────────────────────────── */
+.deal-status {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.deal-status.pending   { background: rgba(251,191,36,0.15);  color: #fbbf24; }
+.deal-status.active    { background: rgba(34,197,94,0.15);   color: #4ade80; }
+.deal-status.documents { background: rgba(96,165,250,0.15);  color: #60a5fa; }
+.deal-status.closed_ok { background: rgba(34,197,94,0.10);   color: #4ade80; opacity:.75; }
+.deal-status.closed_fail { background: rgba(239,68,68,0.15); color: #f87171; }
+.deal-status.open      { background: rgba(232,93,38,0.15);   color: var(--orange); }
+.deal-status.in_progress { background: rgba(96,165,250,0.15); color: #60a5fa; }
+.deal-status.closed    { background: rgba(34,197,94,0.10);   color: #4ade80; }
+.deal-status.approved  { background: rgba(34,197,94,0.15);   color: #4ade80; }
+.deal-status.rejected  { background: rgba(239,68,68,0.15);   color: #f87171; }
+
+/* ── ROLE BADGES ─────────────────────────────────────────────────────────── */
+.role-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 100px;
+}
+.role-badge.author  { background: rgba(232,93,38,0.15);  color: var(--orange); }
+.role-badge.buyer   { background: rgba(96,165,250,0.15); color: #60a5fa; }
+.role-badge.manager { background: rgba(168,85,247,0.15); color: #c084fc; }
+.role-badge.admin   { background: rgba(34,197,94,0.15);  color: #4ade80; }
+
+/* ── RESPONSIVE ──────────────────────────────────────────────────────────── */
+@media (max-width: 1200px) {
+  .stats-grid { grid-template-columns: repeat(3, 1fr); }
+  .admin-two-col { grid-template-columns: 1fr; }
+  .analytics-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 900px) {
+  .admin-wrap { grid-template-columns: 1fr; }
+  .admin-sidebar {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 4px;
+    border-right: none;
+    border-bottom: 1px solid var(--card-border);
+    padding: 10px;
+  }
+  .admin-brand { display: none; }
+  .admin-nav-section { display: none; }
+  .admin-sidebar-footer { margin-top: 0; padding-top: 0; border-top: none; }
+  .admin-content { padding: 20px; }
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+}

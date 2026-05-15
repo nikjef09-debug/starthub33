@@ -1,0 +1,130 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Настройки — Admin{% endblock %}
+
+{% block admin_head %}
+.set-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.set-row{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid var(--card-border)}
+.set-row:last-child{border-bottom:none}
+.set-info h4{font-size:14px;font-weight:600;color:var(--text);margin-bottom:3px}
+.set-info p{font-size:12.5px;color:var(--text-muted);max-width:380px}
+@media (max-width:1024px){.set-grid{grid-template-columns:1fr}}
+{% endblock %}
+
+{% block admin_content %}
+<div class="page-h">
+  <div class="page-h-left">
+    <h1>Настройки платформы</h1>
+    <p>Управление параметрами и функциями</p>
+  </div>
+</div>
+
+<div class="set-grid">
+  <!-- General -->
+  <div class="card reveal">
+    <div class="card-title">Общие настройки</div>
+    <div class="set-row">
+      <div class="set-info">
+        <h4>Регистрация открыта</h4>
+        <p>Новые пользователи могут создавать аккаунты</p>
+      </div>
+      <button class="toggle on"></button>
+    </div>
+    <div class="set-row">
+      <div class="set-info">
+        <h4>Подтверждение email</h4>
+        <p>Требовать подтверждение email при регистрации</p>
+      </div>
+      <button class="toggle"></button>
+    </div>
+    <div class="set-row">
+      <div class="set-info">
+        <h4>Режим обслуживания</h4>
+        <p>Закрыть сайт для всех кроме админов</p>
+      </div>
+      <button class="toggle"></button>
+    </div>
+  </div>
+
+  <!-- Catalog -->
+  <div class="card reveal" style="transition-delay:.05s">
+    <div class="card-title">Каталог</div>
+    <div class="set-row">
+      <div class="set-info">
+        <h4>Модерация перед публикацией</h4>
+        <p>Стартапы появляются после одобрения админом</p>
+      </div>
+      <button class="toggle"></button>
+    </div>
+    <div class="set-row">
+      <div class="set-info">
+        <h4>Автоверификация по domain</h4>
+        <p>Авто-✓ для проектов с корпоративной почтой</p>
+      </div>
+      <button class="toggle on"></button>
+    </div>
+  </div>
+
+  <!-- Notifications -->
+  <div class="card reveal" style="transition-delay:.1s">
+    <div class="card-title">Уведомления</div>
+    <div class="set-row">
+      <div class="set-info">
+        <h4>Email о новых сделках</h4>
+        <p>Авторам стартапов</p>
+      </div>
+      <button class="toggle on"></button>
+    </div>
+    <div class="set-row">
+      <div class="set-info">
+        <h4>Push о сообщениях</h4>
+        <p>В чате сделки</p>
+      </div>
+      <button class="toggle on"></button>
+    </div>
+    <div class="set-row">
+      <div class="set-info">
+        <h4>Дайджест еженедельно</h4>
+        <p>Сводка активности на email</p>
+      </div>
+      <button class="toggle"></button>
+    </div>
+  </div>
+
+  <!-- Security -->
+  <div class="card reveal" style="transition-delay:.15s">
+    <div class="card-title">Безопасность</div>
+    <div class="set-row">
+      <div class="set-info">
+        <h4>Rate limiting на /login</h4>
+        <p>Защита от брутфорса (5 попыток / 15 мин)</p>
+      </div>
+      <button class="toggle on"></button>
+    </div>
+    <div class="set-row">
+      <div class="set-info">
+        <h4>2FA для админов</h4>
+        <p>Обязательная двухфакторная авторизация</p>
+      </div>
+      <button class="toggle"></button>
+    </div>
+    <div class="set-row">
+      <div class="set-info">
+        <h4>Логирование всех действий</h4>
+        <p>Подробный журнал активности</p>
+      </div>
+      <button class="toggle on"></button>
+    </div>
+  </div>
+</div>
+
+<div class="card reveal" style="margin-top:14px;transition-delay:.2s">
+  <div class="card-title">⚠️ Опасные действия</div>
+  <div class="set-row" style="border:none;padding-bottom:0">
+    <div class="set-info">
+      <h4 style="color:#f87171">Очистить кеш системы</h4>
+      <p>Сбросить кеш сессий и временных данных</p>
+    </div>
+    <button class="btn btn-danger btn-sm">Очистить кеш</button>
+  </div>
+</div>
+{% endblock %}

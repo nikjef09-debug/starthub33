@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}О нас — StartHub{% endblock %}
+{% block content %}
+<div class="static-wrap">
+  <div class="section-label">О нас</div>
+  <h1>Мы строим будущее<br><span style="color:var(--orange)">стартап-экосистемы</span></h1>
+  <p class="lead">StartHub — это P2P платформа, где основатели стартапов встречают инвесторов. Мы верим в прозрачность, скорость и справедливые сделки.</p>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;margin-bottom:48px">
+    <div style="background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius);padding:28px;text-align:center">
+      <div style="font-size:40px;font-weight:800;color:var(--orange);margin-bottom:8px">100+</div>
+      <div style="font-size:14px;color:var(--text-muted)">Стартапов на платформе</div>
+    </div>
+    <div style="background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius);padding:28px;text-align:center">
+      <div style="font-size:40px;font-weight:800;color:var(--orange);margin-bottom:8px">₽2 млрд</div>
+      <div style="font-size:14px;color:var(--text-muted)">Привлечено инвестиций</div>
+    </div>
+    <div style="background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius);padding:28px;text-align:center">
+      <div style="font-size:40px;font-weight:800;color:var(--orange);margin-bottom:8px">95%</div>
+      <div style="font-size:14px;color:var(--text-muted)">Довольных клиентов</div>
+    </div>
+  </div>
+
+  <h2>Наша миссия</h2>
+  <p>Мы создаём пространство, где лучшие идеи встречают правильные деньги. StartHub устраняет барьеры между основателями и инвесторами через прозрачный процесс, реальные инструменты и честные правила.</p>
+
+  <h2>Наши ценности</h2>
+  <p><strong style="color:var(--text)">Прозрачность.</strong> Каждый участник сделки видит полную картину — условия, статусы, документы. Никаких скрытых комиссий и серых схем.</p>
+  <p><strong style="color:var(--text)">Скорость.</strong> От знакомства до подписания — минимум шагов. Встроенный чат, документооборот и управление статусами в одном месте.</p>
+  <p><strong style="color:var(--text)">Доверие.</strong> Менеджеры платформы помогают разрешать спорные ситуации. Каждая сделка проходит с поддержкой живого человека.</p>
+
+  <h2>Команда</h2>
+  <p>Мы — команда предпринимателей, разработчиков и инвестиционных аналитиков. Сами прошли через боль привлечения инвестиций и решили сделать этот процесс цивилизованным.</p>
+
+  <div style="margin-top:48px;text-align:center">
+    <a href="/register" class="btn-lg btn-primary-lg">Присоединиться к StartHub</a>
+  </div>
+</div>
+{% endblock %}

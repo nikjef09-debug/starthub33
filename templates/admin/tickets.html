@@ -1,0 +1,84 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Тикеты — Admin{% endblock %}
+
+{% block admin_head %}
+.ticket-card{
+  background:rgba(14,24,21,0.55);backdrop-filter:blur(20px);
+  border:1px solid var(--glass-border);border-radius:var(--radius);
+  padding:20px;margin-bottom:12px;transition:all .25s;
+}
+.ticket-card:hover{border-color:var(--em-border)}
+.tk-header{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:12px;flex-wrap:wrap}
+.tk-subject{font-size:15px;font-weight:600;color:var(--text);flex:1;min-width:200px}
+.tk-meta{font-size:12px;color:var(--text-dim);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.tk-body{font-size:13.5px;color:var(--text-muted);line-height:1.65;margin-bottom:14px}
+.tk-reply{background:var(--em-dim2);border:1px solid var(--em-border);border-radius:11px;padding:14px;margin-bottom:14px;font-size:13.5px;color:var(--text-muted);line-height:1.6}
+.tk-reply b{color:var(--em2);font-weight:600;display:block;margin-bottom:6px;font-size:12px;text-transform:uppercase;letter-spacing:.5px}
+.tk-form{margin-top:14px}
+.tk-form textarea{width:100%;background:var(--em-dim2);border:1px solid var(--card-border);border-radius:10px;padding:11px 14px;color:var(--text);font-size:13.5px;font-family:inherit;resize:vertical;min-height:80px;outline:none;transition:border-color .2s}
+.tk-form textarea:focus{border-color:var(--em-border)}
+.tk-form-row{display:flex;gap:10px;margin-top:10px;align-items:center}
+.tk-form-row select{background:var(--em-dim2);border:1px solid var(--card-border);color:var(--text);padding:8px 12px;border-radius:9px;font-size:13px;font-family:inherit;outline:none}
+{% endblock %}
+
+{% block admin_content %}
+<div class="page-h">
+  <div class="page-h-left">
+    <h1>Тикеты поддержки</h1>
+    <p>{{ tickets|length }} тикетов · открытых: {{ tickets|selectattr('status.value', 'eq', 'open')|list|length }}</p>
+  </div>
+</div>
+
+{% for t in tickets %}
+<div class="ticket-card reveal" style="transition-delay:{{ loop.index0 * 0.04 }}s">
+  <div class="tk-header">
+    <div style="flex:1">
+      <div class="tk-subject">{{ t.subject }}</div>
+      <div class="tk-meta">
+        <span>от <b style="color:var(--text)">{{ t.user.full_name or t.user.username }}</b></span>
+        <span>·</span>
+        <span>{{ t.created_at.strftime('%d.%m.%Y %H:%M') }}</span>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <span class="badge badge-{% if t.priority.value == 'high' %}red{% elif t.priority.value == 'medium' %}amber{% else %}grey{% endif %}">
+        {{ t.priority.value }}
+      </span>
+      <span class="badge badge-{% if t.status.value == 'open' %}amber{% elif t.status.value == 'in_progress' %}blue{% else %}em{% endif %}">
+        {{ t.status.value }}
+      </span>
+    </div>
+  </div>
+
+  <div class="tk-body">{{ t.body }}</div>
+
+  {% if t.manager_reply %}
+  <div class="tk-reply">
+    <b>Ответ менеджера</b>
+    {{ t.manager_reply }}
+  </div>
+  {% endif %}
+
+  {% if t.status.value != 'closed' %}
+  <form method="post" action="/admin/tickets/{{ t.id }}/reply" class="tk-form">
+    <textarea name="reply" placeholder="Ваш ответ..." required>{{ t.manager_reply or '' }}</textarea>
+    <div class="tk-form-row">
+      <select name="status">
+        <option value="in_progress" {% if t.status.value == 'in_progress' %}selected{% endif %}>В работе</option>
+        <option value="closed">Закрыть</option>
+      </select>
+      <button type="submit" class="btn btn-primary btn-sm">Отправить ответ</button>
+    </div>
+  </form>
+  {% endif %}
+</div>
+{% else %}
+<div class="card reveal">
+  <div class="empty">
+    <div class="empty-icon">💬</div>
+    <h3>Тикетов нет</h3>
+    <p>Все обращения обработаны</p>
+  </div>
+</div>
+{% endfor %}
+{% endblock %}

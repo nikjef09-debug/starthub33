@@ -1,0 +1,86 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Новый пост — Admin{% endblock %}
+
+{% block admin_head %}
+.form-card{
+  background:rgba(14,24,21,0.55);backdrop-filter:blur(20px);
+  border:1px solid var(--glass-border);border-radius:var(--radius);
+  padding:32px;max-width:760px;
+}
+.form-group{margin-bottom:20px}
+.form-group label{display:block;font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px}
+.form-group input,.form-group textarea,.form-group select{
+  width:100%;background:var(--em-dim2);border:1px solid var(--card-border);
+  border-radius:10px;padding:11px 14px;color:var(--text);
+  font-family:inherit;font-size:14px;outline:none;transition:border-color .2s;
+}
+.form-group input:focus,.form-group textarea:focus,.form-group select:focus{border-color:var(--em-border);background:var(--em-dim)}
+.form-group textarea{resize:vertical;min-height:120px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.checkbox-row{display:flex;gap:24px;align-items:center;flex-wrap:wrap}
+.cb-label{display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13.5px;color:var(--text-muted)}
+.cb-label input{display:none}
+.cb-label .cb-fake{width:38px;height:22px;background:rgba(255,255,255,.08);border:1px solid var(--card-border);border-radius:100px;position:relative;transition:all .2s}
+.cb-label .cb-fake::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .25s}
+.cb-label input:checked + .cb-fake{background:var(--em);border-color:var(--em-border-strong)}
+.cb-label input:checked + .cb-fake::after{transform:translateX(16px)}
+{% endblock %}
+
+{% block admin_content %}
+<div class="page-h">
+  <div class="page-h-left">
+    <h1>{% if post %}Редактировать пост{% else %}Новый пост{% endif %}</h1>
+    <p>Создание новости или статьи для блога</p>
+  </div>
+  <a href="/admin/news" class="btn btn-secondary btn-sm">← Назад</a>
+</div>
+
+<form method="post" action="/admin/news/new" class="form-card reveal">
+  <div class="form-group">
+    <label>Заголовок *</label>
+    <input type="text" name="title" required placeholder="Например: StartHub запустил новую версию">
+  </div>
+
+  <div class="form-row">
+    <div class="form-group">
+      <label>Категория</label>
+      <input type="text" name="category" placeholder="Технологии, инвестиции...">
+    </div>
+    <div class="form-group">
+      <label>Тип</label>
+      <select name="is_blog">
+        <option value="0">Новость</option>
+        <option value="1">Статья блога</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label>Короткое описание</label>
+    <textarea name="excerpt" placeholder="2-3 предложения для превью" style="min-height:80px"></textarea>
+  </div>
+
+  <div class="form-group">
+    <label>Полный текст *</label>
+    <textarea name="body" required placeholder="Содержимое статьи..." style="min-height:240px"></textarea>
+  </div>
+
+  <div class="form-group">
+    <div class="checkbox-row">
+      <label class="cb-label">
+        <input type="checkbox" name="is_published" value="1" checked>
+        <span class="cb-fake"></span>
+        Опубликовать сразу
+      </label>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:10px;padding-top:14px;border-top:1px solid var(--card-border)">
+    <button type="submit" class="btn btn-primary">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+      Сохранить
+    </button>
+    <a href="/admin/news" class="btn btn-secondary">Отмена</a>
+  </div>
+</form>
+{% endblock %}

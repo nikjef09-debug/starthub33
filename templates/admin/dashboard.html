@@ -1,0 +1,192 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Дашборд — Admin{% endblock %}
+
+{% block admin_head %}
+.dash-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+.dash-main{display:grid;grid-template-columns:2fr 1fr;gap:14px}
+.activity-feed{display:flex;flex-direction:column;gap:0}
+.activity-item{display:flex;gap:12px;padding:14px 0;border-bottom:1px solid var(--card-border)}
+.activity-item:last-child{border-bottom:none}
+.activity-dot{width:8px;height:8px;border-radius:50%;background:var(--em);margin-top:8px;flex-shrink:0;box-shadow:0 0 8px var(--em-glow)}
+.activity-content{flex:1;min-width:0}
+.activity-text{font-size:13.5px;color:var(--text);margin-bottom:3px}
+.activity-text b{color:var(--em2);font-weight:600}
+.activity-time{font-size:11.5px;color:var(--text-dim)}
+.activity-action{font-size:11px;color:var(--em);background:var(--em-dim);padding:2px 8px;border-radius:6px;border:1px solid var(--em-border);display:inline-block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+
+.quick-list{display:flex;flex-direction:column;gap:10px}
+.ql-item{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:12px 14px;border-radius:11px;
+  background:var(--em-dim2);border:1px solid var(--card-border);
+  transition:all .2s;
+}
+.ql-item:hover{border-color:var(--em-border);background:var(--em-dim)}
+.ql-left{display:flex;align-items:center;gap:11px;flex:1;min-width:0}
+.ql-ava{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--em),var(--em3));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0}
+.ql-info{flex:1;min-width:0}
+.ql-name{font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ql-sub{font-size:11.5px;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.chart-mini{height:60px;display:flex;align-items:flex-end;gap:3px;margin-top:14px}
+.chart-bar{flex:1;background:linear-gradient(180deg,var(--em2),var(--em3));border-radius:2px;animation:barIn .8s cubic-bezier(.22,1,.36,1) both;transform-origin:bottom}
+@keyframes barIn{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+
+@media (max-width:1100px){.dash-grid{grid-template-columns:repeat(2,1fr)}.dash-main{grid-template-columns:1fr}}
+@media (max-width:600px){.dash-grid{grid-template-columns:1fr}}
+{% endblock %}
+
+{% block admin_content %}
+<div class="page-h">
+  <div class="page-h-left">
+    <h1>Дашборд</h1>
+    <p>Общий обзор активности на платформе · обновлено только что</p>
+  </div>
+  <div class="page-h-actions">
+    <button class="btn btn-secondary btn-sm">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+      Обновить
+    </button>
+    <button class="btn btn-primary btn-sm">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Экспорт
+    </button>
+  </div>
+</div>
+
+<!-- ═══ STATS GRID ═══ -->
+<div class="dash-grid">
+  <div class="stat-card reveal">
+    <div class="stat-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    </div>
+    <div class="stat-label">Всего пользователей</div>
+    <div class="stat-value">{{ user_count }}</div>
+    <div class="stat-change up">↑ +12 за неделю</div>
+    <div class="mini-progress">
+      <div class="mp-bar"><div class="mp-fill" style="--w:78%"></div></div>
+    </div>
+  </div>
+
+  <div class="stat-card reveal" style="transition-delay:.05s">
+    <div class="stat-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4.5 17l5-5 4 4 6-6"/><path d="M14 6h6v6"/></svg>
+    </div>
+    <div class="stat-label">Стартапов в каталоге</div>
+    <div class="stat-value">{{ startup_count }}</div>
+    <div class="stat-change up">↑ +5 новых</div>
+    <div class="mini-progress">
+      <div class="mp-bar"><div class="mp-fill" style="--w:62%"></div></div>
+    </div>
+  </div>
+
+  <div class="stat-card reveal" style="transition-delay:.1s">
+    <div class="stat-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+    </div>
+    <div class="stat-label">Активных сделок</div>
+    <div class="stat-value">{{ active_deals }}</div>
+    <div class="stat-change up">↑ {{ deal_count - active_deals }} закрыто</div>
+    <div class="mini-progress">
+      <div class="mp-bar"><div class="mp-fill" style="--w:{% if deal_count %}{{ (active_deals/deal_count*100)|int }}{% else %}0{% endif %}%"></div></div>
+    </div>
+  </div>
+
+  <div class="stat-card reveal" style="transition-delay:.15s">
+    <div class="stat-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+    </div>
+    <div class="stat-label">Объём за всё время</div>
+    <div class="stat-value">
+      {% if revenue_total >= 1000000 %}₽{{ "%.1f"|format(revenue_total/1000000) }}<span style="font-size:18px"> млн</span>
+      {% elif revenue_total >= 1000 %}₽{{ "%.0f"|format(revenue_total/1000) }}<span style="font-size:18px"> тыс</span>
+      {% else %}₽{{ "%.0f"|format(revenue_total) }}{% endif %}
+    </div>
+    <div class="stat-change up">↑ +18% к прошлому месяцу</div>
+    <div class="chart-mini">
+      {% set heights = [40, 65, 50, 80, 55, 90, 70] %}
+      {% for h in heights %}
+      <div class="chart-bar" style="height:{{ h }}%;animation-delay:{{ loop.index0 * 0.08 }}s"></div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MAIN GRID ═══ -->
+<div class="dash-main">
+  <!-- Activity feed -->
+  <div class="card reveal">
+    <div class="card-title">
+      Лента активности
+      <span class="card-title-sub">последние события</span>
+    </div>
+    <div class="activity-feed">
+      {% for log in recent_logs %}
+      <div class="activity-item">
+        <div class="activity-dot"></div>
+        <div class="activity-content">
+          <span class="activity-action">{{ log.action }}</span>
+          <div class="activity-text">
+            {% if log.user %}<b>{{ log.user.full_name or log.user.username }}</b>{% else %}<b>Система</b>{% endif %}
+            {% if log.entity %} · {{ log.entity }}{% if log.entity_id %} #{{ log.entity_id }}{% endif %}{% endif %}
+            {% if log.detail %} · {{ log.detail[:80] }}{% endif %}
+          </div>
+          <div class="activity-time">{{ log.created_at.strftime('%d.%m.%Y %H:%M') }}{% if log.ip %} · IP: {{ log.ip }}{% endif %}</div>
+        </div>
+      </div>
+      {% else %}
+      <div class="empty">
+        <div class="empty-icon">📋</div>
+        <h3>Пока тихо</h3>
+        <p>Лента активности появится по мере действий пользователей</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Side widgets -->
+  <div style="display:flex;flex-direction:column;gap:14px">
+    <!-- New users -->
+    <div class="card reveal" style="transition-delay:.1s">
+      <div class="card-title">Новые пользователи<a href="/admin/users" style="font-size:12px;color:var(--em2);font-weight:500">Все →</a></div>
+      <div class="quick-list">
+        {% for u in recent_users[:5] %}
+        <a href="/admin/users/{{ u.id }}" class="ql-item">
+          <div class="ql-left">
+            <div class="ql-ava">{% if u.full_name %}{{ u.full_name[0] }}{% else %}{{ u.username[0]|upper }}{% endif %}</div>
+            <div class="ql-info">
+              <div class="ql-name">{{ u.full_name or u.username }}</div>
+              <div class="ql-sub">{{ u.email }}</div>
+            </div>
+          </div>
+          <span class="badge badge-{% if u.role.value == 'admin' %}amber{% elif u.role.value == 'manager' %}purple{% elif u.role.value == 'author' %}em{% else %}blue{% endif %}">{{ u.role.value }}</span>
+        </a>
+        {% else %}
+        <div class="empty" style="padding:24px"><p>Нет пользователей</p></div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Recent deals -->
+    <div class="card reveal" style="transition-delay:.15s">
+      <div class="card-title">Свежие сделки<a href="/admin/deals" style="font-size:12px;color:var(--em2);font-weight:500">Все →</a></div>
+      <div class="quick-list">
+        {% for d in recent_deals[:5] %}
+        <a href="/deal/{{ d.id }}" class="ql-item">
+          <div class="ql-left">
+            <div class="ql-ava" style="background:var(--em-dim);color:var(--em2);border:1px solid var(--em-border)">{{ d.startup.emoji or '🚀' }}</div>
+            <div class="ql-info">
+              <div class="ql-name">{{ d.startup.title }}</div>
+              <div class="ql-sub">{{ d.buyer.full_name or d.buyer.username }}{% if d.amount %} · {{ d.amount | money }}{% endif %}</div>
+            </div>
+          </div>
+          <span class="badge badge-{% if d.status.value == 'active' %}em{% elif d.status.value == 'pending' %}amber{% elif d.status.value == 'documents' %}blue{% elif d.status.value == 'closed_ok' %}grey{% else %}red{% endif %}">{{ d.status.value }}</span>
+        </a>
+        {% else %}
+        <div class="empty" style="padding:24px"><p>Нет сделок</p></div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

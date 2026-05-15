@@ -1,0 +1,247 @@
+{% extends "base.html" %}
+{% block title %}{{ startup.title }} — StartHub{% endblock %}
+{% block content %}
+<div class="startup-detail-wrap">
+
+  <!-- Breadcrumb -->
+  <div style="font-size:13px;color:var(--text-dim);margin-bottom:32px">
+    <a href="/catalog" style="color:var(--text-dim)">Каталог</a> / <span>{{ startup.title }}</span>
+  </div>
+
+  <div class="sd-hero">
+    <div>
+      <!-- Cover -->
+      <div class="sd-cover" style="background:linear-gradient(135deg,#1a0a03,#3d1a07);margin-bottom:24px">
+        {% if startup.cover_image %}
+          <img src="{{ startup.cover_image }}" alt="">
+        {% else %}
+          {{ startup.emoji or '🚀' }}
+        {% endif %}
+        {% if startup.is_featured %}
+        <div class="sc-badge" style="top:16px;left:16px">⭐ Featured</div>
+        {% endif %}
+      </div>
+
+      <!-- Author -->
+      <div class="author-card">
+        <div class="author-ava">
+          {% if startup.author.avatar %}
+            <img src="{{ startup.author.avatar }}" alt="">
+          {% else %}
+            <div class="author-ava-placeholder">{{ (startup.author.full_name or startup.author.username)[0].upper() }}</div>
+          {% endif %}
+        </div>
+        <div class="author-info" style="flex:1">
+          <h4>{{ startup.author.full_name or startup.author.username }}</h4>
+          <p>{{ startup.author.bio or 'Автор стартапа' }}</p>
+        </div>
+        {% if user %}
+        <button class="fav-btn {% if is_favorited %}active{% endif %}"
+          onclick="toggleFavorite({{ startup.id }}, this)">
+          {% if is_favorited %}♥ В избранном{% else %}♡ В избранное{% endif %}
+        </button>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Info Card -->
+    <div>
+      <div class="sd-info-card">
+        <div class="sc-cat">{{ startup.category }}</div>
+        <h1 style="font-size:22px;font-weight:700;margin-bottom:8px;line-height:1.3">{{ startup.title }}</h1>
+        <p style="font-size:15px;color:var(--text-muted);margin-bottom:20px">{{ startup.tagline }}</p>
+
+        <div class="sd-price">{{ startup.price | money }}</div>
+        <div class="sd-price-label">Запрашиваемые инвестиции</div>
+
+        <div class="sd-stat"><span>Стадия</span><span>{{ startup.stage }}</span></div>
+        {% if startup.revenue %}<div class="sd-stat"><span>Выручка</span><span>{{ startup.revenue | money }}</span></div>{% endif %}
+        {% if startup.valuation %}<div class="sd-stat"><span>Оценка</span><span>{{ startup.valuation | money }}</span></div>{% endif %}
+        <div class="sd-stat"><span>Просмотры</span><span>{{ startup.views_count }}</span></div>
+        <div class="sd-stat" style="border:none"><span>Статус</span><span style="color:{% if startup.status.value == 'active' %}#4ade80{% else %}var(--text-muted){% endif %}">{{ startup.status.value }}</span></div>
+
+        <div style="margin-top:24px">
+          {% if user and user.id != startup.author_id and startup.status.value == 'active' %}
+            <button onclick="openModal('deal-modal')" class="btn-orange" style="width:100%;padding:13px;font-size:15px;border-radius:10px">
+              🤝 Начать сделку
+            </button>
+          {% elif not user %}
+            <a href="/login" class="btn-orange" style="width:100%;padding:13px;font-size:15px;border-radius:10px;display:block;text-align:center">
+              Войдите чтобы начать сделку
+            </a>
+          {% elif user.id == startup.author_id %}
+            <a href="/my-startups/{{ startup.id }}/edit" class="btn-ghost" style="width:100%;padding:13px;font-size:15px;border-radius:10px;display:block;text-align:center">
+              ✏️ Редактировать
+            </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Description -->
+  <div class="sd-body">
+    <h2>О стартапе</h2>
+    <p>{{ startup.description or 'Описание не добавлено.' }}</p>
+    {% if startup.tags %}
+    <div style="margin-top:20px;display:flex;gap:8px;flex-wrap:wrap">
+      {% for tag in startup.tags %}
+      <span style="background:rgba(232,93,38,0.1);border:1px solid rgba(232,93,38,0.2);color:var(--orange2);font-size:12px;padding:4px 12px;border-radius:100px">{{ tag.name }}</span>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- ── REVIEWS ────────────────────────────────────────────────────────── -->
+  <div class="sd-body" style="margin-top:20px">
+
+    <!-- Header with avg rating -->
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
+      <div>
+        <h2 style="margin-bottom:4px">Отзывы</h2>
+        {% set visible_reviews = startup.reviews | selectattr('is_visible') | list %}
+        {% if visible_reviews %}
+          {% set avg = (visible_reviews | map(attribute='rating') | sum) / visible_reviews | length %}
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:28px;font-weight:800;color:var(--orange)">{{ "%.1f"|format(avg) }}</span>
+            <div>
+              <div style="color:var(--orange);font-size:16px;letter-spacing:2px">
+                {% for i in range(1,6) %}{% if i <= avg|round(0,'ceil')|int %}★{% else %}☆{% endif %}{% endfor %}
+              </div>
+              <div style="font-size:12px;color:var(--text-dim)">{{ visible_reviews|length }} отзыв{{ 'ов' if visible_reviews|length > 4 else ('а' if visible_reviews|length > 1 else '') }}</div>
+            </div>
+          </div>
+        {% else %}
+          <p style="font-size:14px;color:var(--text-dim)">Отзывов пока нет — будьте первым</p>
+        {% endif %}
+      </div>
+
+      {% if user and user.id != startup.author_id %}
+      <button onclick="openModal('review-modal')" class="btn-ghost" style="font-size:14px;padding:10px 20px">
+        ✏️ Написать отзыв
+      </button>
+      {% elif not user %}
+      <a href="/login" style="font-size:13px;color:var(--orange2)">Войдите чтобы оставить отзыв →</a>
+      {% endif %}
+    </div>
+
+    <!-- Review list -->
+    {% if visible_reviews %}
+    <div style="display:flex;flex-direction:column;gap:16px">
+      {% for r in visible_reviews %}
+      <div style="background:rgba(255,255,255,0.02);border:1px solid var(--card-border);border-radius:12px;padding:20px 24px;transition:border-color .2s" onmouseover="this.style.borderColor='rgba(232,93,38,0.2)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.08)'">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--orange),var(--orange3));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;flex-shrink:0">
+              {{ (r.author.full_name or r.author.username)[0].upper() }}
+            </div>
+            <div>
+              <div style="font-size:14px;font-weight:600">{{ r.author.full_name or r.author.username }}</div>
+              <div style="font-size:12px;color:var(--text-dim)">{{ r.created_at.strftime('%d %B %Y') }}</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:2px">
+            {% for i in range(1,6) %}
+            <span style="font-size:18px;color:{% if i <= r.rating %}var(--orange){% else %}rgba(255,255,255,0.15){% endif %}">★</span>
+            {% endfor %}
+          </div>
+        </div>
+        {% if r.comment %}
+        <p style="font-size:14px;color:var(--text-muted);line-height:1.6;margin:0">{{ r.comment }}</p>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div style="text-align:center;padding:40px 20px;background:rgba(255,255,255,0.02);border:1px dashed var(--card-border);border-radius:12px">
+      <div style="font-size:36px;margin-bottom:10px">💬</div>
+      <p style="font-size:14px;color:var(--text-dim)">Пока никто не оставил отзыв</p>
+    </div>
+    {% endif %}
+
+  </div><!-- /reviews -->
+</div>
+
+<!-- ── DEAL MODAL ─────────────────────────────────────────────────────────── -->
+{% if user and user.id != startup.author_id %}
+<div class="modal-overlay" id="deal-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('deal-modal')">×</button>
+    <h2>Начать сделку</h2>
+    <p class="modal-sub" style="color:var(--text-muted);margin-bottom:20px">Отправьте предложение автору стартапа «{{ startup.title }}»</p>
+    <form method="post" action="/deal/create/{{ startup.id }}">
+      <div class="form-group">
+        <label>Сумма инвестиций (₽)</label>
+        <input type="number" name="amount" placeholder="например: 5000000" min="1">
+      </div>
+      <div class="form-group">
+        <label>Сопроводительное сообщение</label>
+        <textarea name="note" placeholder="Расскажите о себе и своём интересе к проекту..."></textarea>
+      </div>
+      <button type="submit" class="btn-orange" style="width:100%;padding:13px;font-size:15px">Отправить предложение</button>
+    </form>
+  </div>
+</div>
+
+<!-- ── REVIEW MODAL ───────────────────────────────────────────────────────── -->
+<div class="modal-overlay" id="review-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('review-modal')">×</button>
+    <h2>Написать отзыв</h2>
+    <p class="modal-sub" style="color:var(--text-muted);margin-bottom:24px">{{ startup.title }}</p>
+    <form method="post" action="/review/startup/{{ startup.id }}">
+
+      <!-- Star rating -->
+      <div class="form-group">
+        <label>Ваша оценка</label>
+        <div style="display:flex;gap:6px;margin-top:8px" id="star-picker">
+          {% for i in range(1,6) %}
+          <span class="review-star" data-val="{{ i }}"
+            style="font-size:36px;cursor:pointer;color:rgba(255,255,255,0.15);transition:all .15s;user-select:none"
+            onmouseover="hoverStars({{ i }})"
+            onmouseout="resetStars()"
+            onclick="pickStar({{ i }})">★</span>
+          {% endfor %}
+        </div>
+        <input type="hidden" name="rating" id="rating-input" value="5">
+        <div id="rating-label" style="font-size:13px;color:var(--orange2);margin-top:8px;height:18px">Отлично</div>
+      </div>
+
+      <div class="form-group">
+        <label>Комментарий</label>
+        <textarea name="comment" rows="4" placeholder="Поделитесь впечатлением — что понравилось, что можно улучшить..."></textarea>
+      </div>
+
+      <button type="submit" class="btn-orange" style="width:100%;padding:13px;font-size:15px">Опубликовать отзыв</button>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+const LABELS = {1:'Ужасно', 2:'Плохо', 3:'Нормально', 4:'Хорошо', 5:'Отлично'};
+let picked = 5;
+
+function hoverStars(n) {
+  document.querySelectorAll('.review-star').forEach((s, i) => {
+    s.style.color = i < n ? 'var(--orange)' : 'rgba(255,255,255,0.15)';
+    s.style.transform = i < n ? 'scale(1.1)' : 'scale(1)';
+  });
+  document.getElementById('rating-label').textContent = LABELS[n] || '';
+}
+function resetStars() {
+  hoverStars(picked);
+  document.getElementById('rating-label').textContent = LABELS[picked] || '';
+}
+function pickStar(n) {
+  picked = n;
+  document.getElementById('rating-input').value = n;
+  resetStars();
+}
+// Init at 5
+pickStar(5);
+</script>
+{% endblock %}

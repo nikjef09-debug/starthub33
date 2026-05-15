@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Избранное — StartHub{% endblock %}
+{% block content %}
+<div class="page-wrap">
+  <div class="page-header">
+    <div><h1>Избранное</h1><p>Стартапы, которые вы сохранили</p></div>
+    <a href="/catalog" class="btn-ghost">Каталог</a>
+  </div>
+  {% if startups %}
+  <div class="startup-list-grid">
+    {% for s in startups %}
+    <a href="/startup/{{ s.slug }}" class="startup-card">
+      <div class="sc-cover" style="background:linear-gradient(135deg,#1a0a03,#3d1a07)">
+        {% if s.cover_image %}<img src="{{ s.cover_image }}" class="sc-cover-img" alt="">
+        {% else %}<div class="sc-cover-inner">{{ s.emoji or '🚀' }}</div>{% endif %}
+      </div>
+      <div class="sc-body">
+        <div class="sc-cat">{{ s.category }}</div>
+        <div class="sc-title">{{ s.title }}</div>
+        <div class="sc-desc">{{ (s.tagline or s.description or '')[:90] }}</div>
+        <div class="sc-footer">
+          <div class="sc-invest">{{ s.price | money }}</div>
+          <div class="sc-stage">{{ s.stage }}</div>
+        </div>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="e-icon">♡</div>
+    <h3>Избранных нет</h3>
+    <p>Добавляйте стартапы в избранное на их страницах</p>
+    <a href="/catalog" class="btn-orange" style="margin-top:20px;display:inline-block">Смотреть каталог</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

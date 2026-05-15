@@ -1,0 +1,91 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Отзывы — Admin{% endblock %}
+
+{% block admin_head %}
+.review-card{
+  background:rgba(14,24,21,0.55);backdrop-filter:blur(20px);
+  border:1px solid var(--glass-border);border-radius:var(--radius);
+  padding:22px;margin-bottom:12px;transition:all .25s;
+}
+.review-card:hover{border-color:var(--em-border)}
+.review-card.featured{border-color:var(--em-border-strong);background:var(--em-dim2)}
+.rev-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:14px;flex-wrap:wrap}
+.rev-author{display:flex;align-items:center;gap:11px}
+.rev-ava{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--em),var(--em3));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#fff;flex-shrink:0}
+.rev-info{display:flex;flex-direction:column}
+.rev-name{font-size:14.5px;font-weight:600;color:var(--text)}
+.rev-meta{font-size:11.5px;color:var(--text-dim)}
+.rev-stars{color:var(--em);letter-spacing:2px;font-size:14px}
+.rev-stars span{color:var(--text-dim)}
+.rev-text{font-size:13.5px;color:var(--text-muted);line-height:1.65;margin-bottom:14px}
+.rev-controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding-top:14px;border-top:1px solid var(--card-border)}
+.toggle-wrap{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text-muted)}
+.toggle-wrap b{color:var(--text)}
+{% endblock %}
+
+{% block admin_content %}
+<div class="page-h">
+  <div class="page-h-left">
+    <h1>Отзывы</h1>
+    <p>Управление отзывами и их отображением на главной странице</p>
+  </div>
+</div>
+
+<div class="card reveal" style="margin-bottom:18px;background:var(--em-dim2);border-color:var(--em-border)">
+  <div style="display:flex;gap:14px;align-items:center">
+    <div style="font-size:22px">💡</div>
+    <div>
+      <div style="font-size:14px;font-weight:600;margin-bottom:4px;color:var(--text)">Как это работает</div>
+      <div style="font-size:13px;color:var(--text-muted);line-height:1.6">
+        Включите тумблер «На главной» — отзыв появится в карусели на главной странице.
+        Отключите «Видимость» — отзыв скроется со всех страниц.
+      </div>
+    </div>
+  </div>
+</div>
+
+{% for r in reviews %}
+{% set fn = (r.author.full_name or r.author.username or 'У') %}
+<div class="review-card reveal {% if r.is_featured_on_landing %}featured{% endif %}" style="transition-delay:{{ loop.index0 * 0.04 }}s">
+  <div class="rev-header">
+    <div class="rev-author">
+      <div class="rev-ava">{% if r.author.avatar %}<img src="{{ r.author.avatar }}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">{% else %}{{ fn[0] }}{% endif %}</div>
+      <div class="rev-info">
+        <div class="rev-name">{{ r.author.full_name or r.author.username }}</div>
+        <div class="rev-meta">
+          {% if r.startup %}о «{{ r.startup.title }}»{% else %}участник{% endif %}
+          · {{ r.created_at.strftime('%d.%m.%Y') }}
+        </div>
+      </div>
+    </div>
+    <div class="rev-stars">
+      {% for i in range(r.rating) %}★{% endfor %}{% for i in range(5-r.rating) %}<span>★</span>{% endfor %}
+    </div>
+  </div>
+  <div class="rev-text">{{ r.comment or '—' }}</div>
+  <div class="rev-controls">
+    <form method="post" action="/admin/reviews/{{ r.id }}/toggle-landing" style="display:flex;align-items:center;gap:10px">
+      <button type="submit" class="toggle {% if r.is_featured_on_landing %}on{% endif %}" title="На главной"></button>
+      <span style="font-size:13px;color:var(--text-muted)">На главной</span>
+    </form>
+    <form method="post" action="/admin/reviews/{{ r.id }}/toggle" style="display:flex;align-items:center;gap:10px">
+      <button type="submit" class="toggle {% if r.is_visible %}on{% endif %}" title="Видимость"></button>
+      <span style="font-size:13px;color:var(--text-muted)">Виден</span>
+    </form>
+    {% if r.startup %}
+    <a href="/startup/{{ r.startup.slug }}" target="_blank" class="btn btn-secondary btn-sm" style="margin-left:auto">
+      Открыть стартап →
+    </a>
+    {% endif %}
+  </div>
+</div>
+{% else %}
+<div class="card reveal">
+  <div class="empty">
+    <div class="empty-icon">⭐</div>
+    <h3>Отзывов пока нет</h3>
+    <p>Первые отзывы появятся после закрытия сделок</p>
+  </div>
+</div>
+{% endfor %}
+{% endblock %}

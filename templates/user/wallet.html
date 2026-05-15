@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}Кошелёк — StartHub{% endblock %}
+{% block content %}
+<div class="page-wrap">
+  <div class="page-header">
+    <div><h1>Кошелёк</h1><p>Управление балансом и транзакциями</p></div>
+  </div>
+
+  {% if wallet %}
+  <!-- Balance cards -->
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:32px">
+    <div style="background:rgba(232,93,38,0.08);border:1px solid rgba(232,93,38,0.25);border-radius:var(--radius);padding:28px">
+      <div style="font-size:13px;color:var(--text-muted);margin-bottom:8px">Доступный баланс</div>
+      <div style="font-size:36px;font-weight:800;color:var(--orange)">{{ wallet.balance | money }}</div>
+    </div>
+    <div style="background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius);padding:28px">
+      <div style="font-size:13px;color:var(--text-muted);margin-bottom:8px">Зарезервировано</div>
+      <div style="font-size:36px;font-weight:800;color:#fbbf24">{{ wallet.reserved | money }}</div>
+    </div>
+    <div style="background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius);padding:28px">
+      <div style="font-size:13px;color:var(--text-muted);margin-bottom:8px">Всего пополнено</div>
+      <div style="font-size:36px;font-weight:800;color:#4ade80">{{ wallet.total_deposited | money }}</div>
+    </div>
+  </div>
+
+  <!-- Deposit form -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:32px">
+    <div style="background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius);padding:28px">
+      <h2 style="font-size:18px;font-weight:600;margin-bottom:20px">Пополнить баланс</h2>
+      <form method="post" action="/wallet/deposit">
+        <div class="form-group">
+          <label>Сумма (₽)</label>
+          <input type="number" name="amount" min="100" step="100" placeholder="10000" required>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+          {% for amt in [5000, 10000, 25000, 50000] %}
+          <button type="button" onclick="document.querySelector('[name=amount]').value={{ amt }}"
+            style="background:rgba(232,93,38,0.1);border:1px solid rgba(232,93,38,0.2);color:var(--orange2);padding:6px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-family:'Inter',sans-serif">
+            {{ amt | money }}
+          </button>
+          {% endfor %}
+        </div>
+        <button type="submit" class="btn-orange" style="width:100%;padding:12px">Пополнить</button>
+      </form>
+    </div>
+
+    <div style="background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius);padding:28px">
+      <h2 style="font-size:18px;font-weight:600;margin-bottom:20px">Информация</h2>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        {% for label, val in [
+          ('Способы пополнения', 'Банковская карта, СБП'),
+          ('Комиссия', '0% на пополнение'),
+          ('Вывод', 'От 3 рабочих дней'),
+          ('Мин. пополнение', '₽ 100'),
+        ] %}
+        <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--card-border);font-size:14px">
+          <span style="color:var(--text-muted)">{{ label }}</span>
+          <span style="font-weight:500">{{ val }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Transactions -->
+  <div style="background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius);overflow:hidden">
+    <div style="padding:20px 24px;border-bottom:1px solid var(--card-border)">
+      <h2 style="font-size:18px;font-weight:600">История транзакций</h2>
+    </div>
+    {% if wallet.transactions %}
+    <table class="admin-table">
+      <thead><tr><th>ID</th><th>Тип</th><th>Описание</th><th>Сумма</th><th>Статус</th><th>Дата</th></tr></thead>
+      <tbody>
+        {% for tx in wallet.transactions|reverse %}
+        <tr>
+          <td style="color:var(--text-dim)">#{{ tx.id }}</td>
+          <td style="font-size:13px">
+            {% if tx.type == 'deposit' %}💳 Пополнение
+            {% elif tx.type == 'withdraw' %}📤 Вывод
+            {% elif tx.type == 'fee' %}💼 Комиссия
+            {% else %}🤝 Сделка{% endif %}
+          </td>
+          <td style="font-size:13px;color:var(--text-muted)">{{ tx.description or '—' }}</td>
+          <td style="font-weight:600;{% if tx.type == 'deposit' %}color:#4ade80{% else %}color:#f87171{% endif %}">
+            {% if tx.type == 'deposit' %}+{% else %}−{% endif %}{{ tx.amount | money }}
+          </td>
+          <td><span class="deal-status {{ tx.status.value }}" style="font-size:11px">{{ tx.status.value }}</span></td>
+          <td style="font-size:12px;color:var(--text-dim)">{{ tx.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state" style="padding:60px 20px">
+      <div class="e-icon">💳</div>
+      <h3>Транзакций пока нет</h3>
+      <p>Пополните баланс чтобы начать</p>
+    </div>
+    {% endif %}
+  </div>
+
+  {% else %}
+  <div class="empty-state">
+    <div class="e-icon">💳</div>
+    <h3>Кошелёк не найден</h3>
+    <p>Обратитесь в поддержку</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

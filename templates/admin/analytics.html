@@ -1,0 +1,97 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Аналитика — Admin{% endblock %}
+
+{% block admin_head %}
+.an-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.chart-row{display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid var(--card-border)}
+.chart-row:last-child{border-bottom:none}
+.chart-label{font-size:13px;color:var(--text);flex:1}
+.chart-bar-wrap{flex:2;height:7px;background:rgba(255,255,255,.05);border-radius:4px;overflow:hidden}
+.chart-bar-fill{height:100%;background:linear-gradient(90deg,var(--em3),var(--em2));border-radius:4px;transform-origin:left;animation:fillBar 1.5s cubic-bezier(.22,1,.36,1) forwards;width:var(--w)}
+.chart-val{font-size:13px;font-weight:600;color:var(--em2);min-width:30px;text-align:right}
+{% endblock %}
+
+{% block admin_content %}
+<div class="page-h">
+  <div class="page-h-left">
+    <h1>Аналитика</h1>
+    <p>Разрезы по категориям, ролям, сделкам</p>
+  </div>
+</div>
+
+<div class="an-grid">
+  <!-- Categories -->
+  <div class="card reveal">
+    <div class="card-title">Стартапы по категориям</div>
+    {% set max_cat = cat_stats.values()|max if cat_stats else 1 %}
+    {% for cat, cnt in cat_stats.items() %}
+    <div class="chart-row">
+      <div class="chart-label">{{ cat }}</div>
+      <div class="chart-bar-wrap"><div class="chart-bar-fill" style="--w:{{ (cnt/max_cat*100)|int }}%;animation-delay:{{ loop.index0 * 0.08 }}s"></div></div>
+      <div class="chart-val">{{ cnt }}</div>
+    </div>
+    {% else %}<div class="empty"><p>Нет данных</p></div>{% endfor %}
+  </div>
+
+  <!-- Deal statuses -->
+  <div class="card reveal" style="transition-delay:.1s">
+    <div class="card-title">Сделки по статусам</div>
+    {% set max_d = deal_stats.values()|max if deal_stats else 1 %}
+    {% for st, cnt in deal_stats.items() %}
+    <div class="chart-row">
+      <div class="chart-label">{{ st }}</div>
+      <div class="chart-bar-wrap"><div class="chart-bar-fill" style="--w:{{ (cnt/max_d*100)|int }}%;animation-delay:{{ loop.index0 * 0.08 }}s"></div></div>
+      <div class="chart-val">{{ cnt }}</div>
+    </div>
+    {% else %}<div class="empty"><p>Нет сделок</p></div>{% endfor %}
+  </div>
+
+  <!-- Roles -->
+  <div class="card reveal" style="transition-delay:.2s">
+    <div class="card-title">Пользователи по ролям</div>
+    {% set max_r = role_stats.values()|max if role_stats else 1 %}
+    {% for role, cnt in role_stats.items() %}
+    <div class="chart-row">
+      <div class="chart-label">{{ role }}</div>
+      <div class="chart-bar-wrap"><div class="chart-bar-fill" style="--w:{{ (cnt/max_r*100)|int }}%;animation-delay:{{ loop.index0 * 0.08 }}s"></div></div>
+      <div class="chart-val">{{ cnt }}</div>
+    </div>
+    {% else %}<div class="empty"><p>Нет данных</p></div>{% endfor %}
+  </div>
+
+  <!-- Top startups -->
+  <div class="card reveal" style="transition-delay:.3s">
+    <div class="card-title">Топ-10 стартапов по просмотрам</div>
+    {% for s in top_startups[:10] %}
+    <div class="chart-row" style="gap:11px">
+      <div style="width:28px;height:28px;border-radius:7px;background:var(--em-dim);border:1px solid var(--em-border);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">{{ s.emoji or '🚀' }}</div>
+      <div class="chart-label" style="font-weight:500">{{ s.title }}</div>
+      <div class="chart-val">{{ s.views_count or 0 }}</div>
+    </div>
+    {% else %}<div class="empty"><p>Нет данных</p></div>{% endfor %}
+  </div>
+</div>
+
+<!-- Transactions -->
+<div class="card reveal" style="transition-delay:.4s">
+  <div class="card-title">Последние транзакции<span class="card-title-sub">{{ recent_tx|length }} записей</span></div>
+  <table class="tbl" style="margin:-22px;width:calc(100% + 44px)">
+    <thead>
+      <tr><th>Тип</th><th>Сумма</th><th>Статус</th><th>Описание</th><th>Дата</th></tr>
+    </thead>
+    <tbody>
+      {% for tx in recent_tx %}
+      <tr>
+        <td><span class="badge badge-{% if tx.type == 'deposit' %}em{% elif tx.type == 'withdraw' %}red{% else %}grey{% endif %}">{{ tx.type }}</span></td>
+        <td style="font-weight:600;color:var(--em2)">{{ tx.amount | money }}</td>
+        <td><span class="badge badge-{% if tx.status.value == 'approved' %}em{% elif tx.status.value == 'pending' %}amber{% else %}red{% endif %}">{{ tx.status.value }}</span></td>
+        <td>{{ tx.description or '—' }}</td>
+        <td style="color:var(--text-dim);font-size:12.5px">{{ tx.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="5"><div class="empty"><p>Транзакций нет</p></div></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

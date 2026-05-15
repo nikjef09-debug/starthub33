@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Блог — StartHub{% endblock %}
+{% block content %}
+<div class="page-wrap">
+  <div class="page-header" style="flex-direction:column;align-items:flex-start">
+    <div class="section-label">Блог</div>
+    <h1 class="section-title" style="margin-bottom:8px">Статьи и инсайты</h1>
+    <p style="color:var(--text-muted)">Опыт, аналитика и советы от команды StartHub</p>
+  </div>
+  {% if posts %}
+  <div class="news-grid">
+    {% for p in posts %}
+    <div class="news-card">
+      <div class="news-date">{{ p.created_at.strftime('%d %B %Y') }}</div>
+      <div class="news-title">{{ p.title }}</div>
+      <div class="news-excerpt">{{ (p.body or '')[:200] }}{% if (p.body or '')|length > 200 %}...{% endif %}</div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="e-icon">✍️</div>
+    <h3>Статей пока нет</h3>
+    <p>Первые материалы появятся совсем скоро</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

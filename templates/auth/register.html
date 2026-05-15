@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Регистрация — StartHub{% endblock %}
+{% block content %}
+<div class="auth-wrap">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2.5"><polygon points="12 2 2 19 22 19"/></svg>
+      <h2>Создать аккаунт</h2>
+      <p>Присоединяйтесь к StartHub сегодня</p>
+    </div>
+    {% if error %}
+    <div class="auth-error">{{ error }}</div>
+    {% endif %}
+    <form method="post" action="/register">
+      <div class="form-group">
+        <label>Я хочу</label>
+        <select name="role">
+          <option value="buyer">💼 Инвестировать в стартапы</option>
+          <option value="author">🚀 Привлечь инвестиции</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Полное имя</label>
+        <input type="text" name="full_name" placeholder="Иван Иванов" autocomplete="name">
+      </div>
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" name="username" placeholder="ivan_ivanov" required autocomplete="username">
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" name="email" placeholder="you@example.com" required autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label>Пароль</label>
+        <input type="password" name="password" placeholder="Минимум 8 символов" required autocomplete="new-password">
+      </div>
+      <button type="submit" class="btn-orange" style="width:100%;padding:13px;font-size:15px">Создать аккаунт</button>
+    </form>
+    <div class="auth-divider">Уже есть аккаунт? <a href="/login" class="auth-link">Войти</a></div>
+  </div>
+</div>
+{% endblock %}

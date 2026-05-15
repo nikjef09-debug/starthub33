@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+{% block title %}Профиль — StartHub{% endblock %}
+{% block content %}
+<div class="page-wrap">
+
+  <div style="display:grid;grid-template-columns:260px 1fr;gap:24px">
+
+    <!-- ── LEFT SIDEBAR ───────────────────────────────────────────────── -->
+    <div style="display:flex;flex-direction:column;gap:16px">
+
+      <!-- Avatar & name card -->
+      <div style="background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius);padding:28px;text-align:center">
+        {% if user.avatar %}
+          <img src="{{ user.avatar }}" style="width:96px;height:96px;border-radius:50%;object-fit:cover;border:3px solid var(--orange);margin-bottom:14px">
+        {% else %}
+          <div style="width:96px;height:96px;border-radius:50%;background:linear-gradient(135deg,var(--orange),var(--orange3));display:flex;align-items:center;justify-content:center;font-size:36px;font-weight:700;margin:0 auto 14px;border:3px solid var(--orange)">
+            {{ (user.full_name or user.username)[0].upper() }}
+          </div>
+        {% endif %}
+        <div style="font-size:18px;font-weight:700;margin-bottom:2px">{{ user.full_name or user.username }}</div>
+        <div style="font-size:13px;color:var(--text-muted);margin-bottom:8px">@{{ user.username }}</div>
+        <span class="role-badge {{ user.role.value }}">{{ user.role.value }}</span>
+        {% if user.is_verified %}<div style="margin-top:8px;font-size:12px;color:#4ade80">✓ Верифицирован</div>{% endif %}
+        {% if user.location %}<div style="margin-top:6px;font-size:13px;color:var(--text-dim)">📍 {{ user.location }}</div>{% endif %}
+        {% if user.bio %}<div style="margin-top:10px;font-size:13px;color:var(--text-muted);line-height:1.5;text-align:left">{{ user.bio }}</div>{% endif %}
+      </div>
+
+      <!-- Stats -->
+      <div style="background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius);padding:20px">
+        <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--text-dim);margin-bottom:14px">Статистика</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          {% if user.role.value == 'author' %}
+          <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--text-muted)">Стартапов</span><span style="font-weight:600;color:var(--orange)">{{ startups_count }}</span></div>
+          {% endif %}
+          <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--text-muted)">Сделок</span><span style="font-weight:600">{{ deals_count }}</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--text-muted)">На платформе</span><span style="font-weight:600">{{ (now() - user.created_at).days if now else 0 }} дн.</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--text-muted)">Уведомлений</span>
+            <span style="font-weight:600;{% if unread_notifs > 0 %}color:var(--orange){% endif %}">{{ unread_notifs }}</span></div>
+          {% if wallet %}
+          <div style="margin-top:4px;padding-top:12px;border-top:1px solid var(--card-border);display:flex;justify-content:space-between;font-size:13px">
+            <span style="color:var(--text-muted)">Баланс</span>
+            <span style="font-weight:700;color:var(--orange)">{{ wallet.balance | money }}</span>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Navigation -->
+      <div style="background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius);padding:12px">
+        <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--text-dim);padding:8px 8px 12px">Навигация</div>
+        {% set nav_items = [
+          ('/profile', '👤', 'Мой профиль'),
+          ('/my-deals', '🤝', 'Мои сделки'),
+          ('/favorites', '♥', 'Избранное'),
+          ('/notifications', '🔔', 'Уведомления'),
+          ('/wallet', '💳', 'Кошелёк'),
+          ('/support', '💬', 'Поддержка'),
+        ] %}
+        {% if user.role.value == 'author' %}
+          {% set nav_items = nav_items + [('/my-startups', '🚀', 'Мои стартапы')] %}
+        {% endif %}
+        {% for url, icon, label in nav_items %}
+        <a href="{{ url }}" style="display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;font-size:14px;color:{% if request.url.path == url %}var(--orange){% else %}var(--text-muted){% endif %};background:{% if request.url.path == url %}rgba(232,93,38,0.08){% else %}transparent{% endif %};transition:all .2s;margin-bottom:2px">
+          <span>{{ icon }}</span>{{ label }}
+          {% if url == '/notifications' and unread_notifs > 0 %}
+          <span style="margin-left:auto;background:var(--orange);color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:100px">{{ unread_notifs }}</span>
+          {% endif %}
+        </a>
+        {% endfor %}
+        {% if user.role.value in ['admin', 'manager'] %}
+        <div style="padding:4px 8px 4px;margin-top:8px;border-top:1px solid var(--card-border)">
+          <a href="{% if user.role.value == 'admin' %}/admin/dashboard{% else %}/manager/dashboard{% endif %}"
+            style="display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;font-size:14px;color:var(--orange2);background:rgba(232,93,38,0.06)">
+            ⚙ {% if user.role.value == 'admin' %}Admin Panel{% else %}Manager Panel{% endif %}
+          </a>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Contacts -->
+      <div style="background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius);padding:20px">
+        <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--text-dim);margin-bottom:12px">Контакты</div>
+        {% if user.email %}<div style="font-size:13px;color:var(--text-muted);margin-bottom:6px">📧 {{ user.email }}</div>{% endif %}
+        {% if user.phone %}<div style="font-size:13px;color:var(--text-muted);margin-bottom:6px">📞 {{ user.phone }}</div>{% endif %}
+        {% if user.telegram %}<div style="font-size:13px;color:var(--text-muted);margin-bottom:6px">✈ {{ user.telegram }}</div>{% endif %}
+        {% if user.website %}<div style="font-size:13px;color:var(--orange2);margin-bottom:6px"><a href="{{ user.website }}" target="_blank">🌐 {{ user.website[:30] }}</a></div>{% endif %}
+        <div style="font-size:12px;color:var(--text-dim);margin-top:8px">С {{ user.created_at.strftime('%B %Y') }}</div>
+      </div>
+
+    </div><!-- /left sidebar -->
+
+    <!-- ── RIGHT CONTENT ──────────────────────────────────────────────── -->
+    <div style="display:flex;flex-direction:column;gap:20px">
+
+      <!-- Edit form -->
+      <div style="background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius);padding:32px">
+        <h2 style="font-size:20px;font-weight:600;margin-bottom:24px">Редактировать профиль</h2>
+        <form method="post" action="/profile/update" enctype="multipart/form-data">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+            <div class="form-group">
+              <label>Полное имя</label>
+              <input type="text" name="full_name" value="{{ user.full_name or '' }}" placeholder="Иван Иванов">
+            </div>
+            <div class="form-group">
+              <label>Город / Локация</label>
+              <input type="text" name="location" value="{{ user.location or '' }}" placeholder="Москва">
+            </div>
+            <div class="form-group">
+              <label>Телефон</label>
+              <input type="text" name="phone" value="{{ user.phone or '' }}" placeholder="+7 999 000 00 00">
+            </div>
+            <div class="form-group">
+              <label>Telegram</label>
+              <input type="text" name="telegram" value="{{ user.telegram or '' }}" placeholder="@username">
+            </div>
+            <div class="form-group" style="grid-column:span 2">
+              <label>Сайт / Портфолио</label>
+              <input type="text" name="website" value="{{ user.website or '' }}" placeholder="https://example.com">
+            </div>
+            <div class="form-group" style="grid-column:span 2">
+              <label>О себе</label>
+              <textarea name="bio" rows="3" placeholder="Расскажите о себе, опыте, интересах...">{{ user.bio or '' }}</textarea>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Аватар</label>
+            <div class="upload-form">
+              <label class="upload-label">
+                <input type="file" name="avatar" accept="image/*" style="display:none">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                <span>Выбрать фото (PNG/JPG, до 5 МБ)</span>
+              </label>
+            </div>
+          </div>
+          <button type="submit" class="btn-orange" style="padding:12px 32px">Сохранить изменения</button>
+        </form>
+      </div>
+
+      <!-- Recent activity -->
+      {% if activity %}
+      <div style="background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius);padding:28px">
+        <h2 style="font-size:18px;font-weight:600;margin-bottom:20px">Последняя активность</h2>
+        <div style="display:flex;flex-direction:column;gap:0">
+          {% for log in activity %}
+          <div style="display:flex;gap:14px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.04);align-items:center">
+            <div style="width:36px;height:36px;border-radius:8px;background:rgba(232,93,38,0.1);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">
+              {% if 'login' in log.action %}🔑
+              {% elif 'deal' in log.action %}🤝
+              {% elif 'startup' in log.action %}🚀
+              {% elif 'profile' in log.action %}👤
+              {% elif 'deposit' in log.action %}💳
+              {% elif 'ticket' in log.action %}💬
+              {% else %}⚡{% endif %}
+            </div>
+            <div style="flex:1">
+              <div style="font-size:13px;font-weight:500">{{ log.action.replace('_', ' ').title() }}</div>
+              {% if log.detail %}<div style="font-size:12px;color:var(--text-muted)">{{ log.detail[:60] }}</div>{% endif %}
+            </div>
+            <div style="font-size:11px;color:var(--text-dim);flex-shrink:0">{{ log.created_at.strftime('%d.%m %H:%M') }}</div>
+          </div>
+          {% endfor %}
+        </div>
+        <a href="/notifications" style="display:block;text-align:center;font-size:13px;color:var(--orange2);margin-top:14px">Все уведомления →</a>
+      </div>
+      {% endif %}
+
+    </div><!-- /right content -->
+  </div>
+</div>
+{% endblock %}

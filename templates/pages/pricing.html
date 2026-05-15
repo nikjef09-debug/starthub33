@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% block title %}Тарифы — StartHub{% endblock %}
+{% block content %}
+<div style="text-align:center;padding:80px 60px 40px">
+  <div class="section-label">Тарифы</div>
+  <h1 class="section-title">Простые цены<br>для любого этапа</h1>
+  <p style="font-size:17px;color:var(--text-muted);max-width:500px;margin:0 auto">Без скрытых комиссий. Отмена в любой момент.</p>
+</div>
+
+<section class="pricing-section" style="padding-top:20px">
+  <div class="pricing-grid">
+    <div class="price-card">
+      <div style="font-size:24px;margin-bottom:12px">🌱</div>
+      <div class="price-name">Starter</div>
+      <div class="price-amount">₽ 4 990<span>/мес</span></div>
+      <div class="price-period">Для первых шагов</div>
+      <ul class="price-features">
+        <li>1 стартап в каталоге</li>
+        <li>До 3 активных сделок</li>
+        <li>Базовый чат</li>
+        <li>Загрузка до 3 документов</li>
+        <li>Email поддержка</li>
+      </ul>
+      <a href="/register" class="btn-full btn-outline-full">Начать бесплатно</a>
+    </div>
+
+    <div class="price-card featured">
+      <div style="font-size:24px;margin-bottom:12px;color:var(--orange)">🚀</div>
+      <div class="price-name" style="color:var(--orange)">Pro</div>
+      <div class="price-amount">₽ 14 990<span>/мес</span></div>
+      <div class="price-period">Для активного роста</div>
+      <ul class="price-features">
+        <li>До 5 стартапов</li>
+        <li>Неограниченные сделки</li>
+        <li>Приоритет в каталоге</li>
+        <li>@manager в чате</li>
+        <li>Аналитика просмотров</li>
+        <li>До 50 документов</li>
+        <li>Чат поддержки</li>
+      </ul>
+      <a href="/register" class="btn-full btn-orange-full">Выбрать Pro</a>
+    </div>
+
+    <div class="price-card">
+      <div style="font-size:24px;margin-bottom:12px">⚡</div>
+      <div class="price-name">Enterprise</div>
+      <div class="price-amount">₽ 39 990<span>/мес</span></div>
+      <div class="price-period">Для масштаба</div>
+      <ul class="price-features">
+        <li>Без ограничений</li>
+        <li>Выделенный менеджер</li>
+        <li>Белый лейбл</li>
+        <li>API доступ</li>
+        <li>SLA 99.9%</li>
+        <li>Приоритетная поддержка 24/7</li>
+        <li>Индивидуальный договор</li>
+      </ul>
+      <a href="/contact" class="btn-full btn-outline-full">Связаться</a>
+    </div>
+  </div>
+
+  <!-- Compare table -->
+  <div style="margin-top:72px">
+    <h2 style="font-size:28px;font-weight:700;text-align:center;margin-bottom:32px;letter-spacing:-0.5px">Полное сравнение</h2>
+    <div style="background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius);overflow:hidden">
+      <table style="width:100%;border-collapse:collapse">
+        <thead>
+          <tr style="border-bottom:1px solid var(--card-border)">
+            <th style="padding:16px 20px;text-align:left;font-size:13px;color:var(--text-dim);font-weight:600">Функция</th>
+            <th style="padding:16px;text-align:center;font-size:14px;font-weight:600">Starter</th>
+            <th style="padding:16px;text-align:center;font-size:14px;font-weight:600;color:var(--orange)">Pro</th>
+            <th style="padding:16px;text-align:center;font-size:14px;font-weight:600">Enterprise</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for feat, s, p, e in [
+            ('Стартапов', '1', '5', '∞'),
+            ('Активных сделок', '3', '∞', '∞'),
+            ('Документов', '3', '50', '∞'),
+            ('Чат в сделке', '✓', '✓', '✓'),
+            ('@manager поддержка', '✕', '✓', '✓'),
+            ('Аналитика просмотров', '✕', '✓', '✓'),
+            ('Приоритет в каталоге', '✕', '✓', '✓'),
+            ('Верификация стартапа', '✕', '✓', '✓'),
+            ('API доступ', '✕', '✕', '✓'),
+            ('Выделенный менеджер', '✕', '✕', '✓'),
+            ('Белый лейбл', '✕', '✕', '✓'),
+            ('SLA', '✕', '99%', '99.9%'),
+          ] %}
+          <tr style="border-bottom:1px solid rgba(255,255,255,0.04)">
+            <td style="padding:14px 20px;font-size:14px;color:var(--text-muted)">{{ feat }}</td>
+            <td style="padding:14px;text-align:center;font-size:14px;{% if s == '✕' %}color:var(--text-dim){% elif s == '✓' %}color:#4ade80{% else %}color:var(--text){% endif %}">{{ s }}</td>
+            <td style="padding:14px;text-align:center;font-size:14px;{% if p == '✕' %}color:var(--text-dim){% elif p == '✓' %}color:#4ade80{% else %}color:var(--orange){% endif %}">{{ p }}</td>
+            <td style="padding:14px;text-align:center;font-size:14px;{% if e == '✕' %}color:var(--text-dim){% elif e == '✓' %}color:#4ade80{% else %}color:var(--text){% endif %}">{{ e }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="faq-section">
+  <div class="section-label">FAQ по тарифам</div>
+  <h2 class="section-title">Вопросы об оплате</h2>
+  <div class="faq-list">
+    <div class="faq-item open">
+      <div class="faq-q" onclick="toggleFaq(this)">Есть ли пробный период?<span class="faq-arrow">▾</span></div>
+      <div class="faq-a"><div class="faq-a-inner">Да, 14 дней бесплатно на тарифе Pro для новых пользователей. Карта не нужна.</div></div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">Можно ли отменить подписку?<span class="faq-arrow">▾</span></div>
+      <div class="faq-a"><div class="faq-a-inner">Да, в любой момент из личного кабинета. Доступ сохраняется до конца оплаченного периода.</div></div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">Как менять тариф?<span class="faq-arrow">▾</span></div>
+      <div class="faq-a"><div class="faq-a-inner">Повысить тариф можно мгновенно. При понижении разница пересчитывается пропорционально остатку периода.</div></div>
+    </div>
+  </div>
+</section>
+{% endblock %}

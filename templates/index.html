@@ -1,0 +1,741 @@
+{% extends "base.html" %}
+{% block title %}StartHub — Платформа для продажи и покупки стартапов{% endblock %}
+{% block head %}
+<style>
+/* ═══ INDEX-ONLY STYLES ════════════════════════════════════════════════════════ */
+
+/* ── Hero with stats card layout ── */
+.hero-wrap{position:relative;padding:140px 64px 80px;max-width:1240px;margin:0 auto}
+.hero-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:60px;align-items:center}
+.hero-left{position:relative;z-index:2}
+.hero-right{position:relative}
+
+/* Floating side stats card */
+.side-stats{
+  background:var(--glass-bg);border:1px solid var(--em-border);
+  border-radius:var(--radius);padding:32px;
+  backdrop-filter:blur(20px) saturate(160%);
+  box-shadow:0 24px 60px rgba(0,0,0,0.4),0 0 0 1px var(--em-border) inset,0 0 60px rgba(16,185,129,.05) inset;
+  animation:fadeUp .7s .4s ease both;
+}
+.ss-row{padding:18px 0;border-bottom:1px solid var(--card-border);display:flex;justify-content:space-between;align-items:center}
+.ss-row:last-child{border-bottom:none}
+.ss-label{font-size:12.5px;color:var(--text-muted)}
+.ss-value{font-family:'Syne',sans-serif;font-size:24px;font-weight:700;color:var(--em);letter-spacing:-0.5px}
+.ss-trend{font-size:11px;color:var(--em2);margin-left:6px;font-family:'DM Sans',sans-serif;font-weight:600}
+
+/* ── Ticker tape ── */
+.ticker-wrap{overflow:hidden;border-top:1px solid var(--glass-border);border-bottom:1px solid var(--glass-border);padding:12px 0;background:var(--em-dim2);position:relative}
+.ticker-wrap::before,.ticker-wrap::after{content:'';position:absolute;top:0;bottom:0;width:120px;z-index:2;pointer-events:none}
+.ticker-wrap::before{left:0;background:linear-gradient(90deg,var(--bg),transparent)}
+.ticker-wrap::after{right:0;background:linear-gradient(-90deg,var(--bg),transparent)}
+.ticker{display:flex;gap:0;white-space:nowrap;animation:ticker 38s linear infinite}
+.ticker:hover{animation-play-state:paused}
+.ticker-item{display:inline-flex;align-items:center;gap:10px;padding:0 36px;font-size:12.5px;color:var(--text-dim);font-weight:500;letter-spacing:.4px}
+.ticker-item b{color:var(--em2);font-weight:600}
+.ticker-dot{width:5px;height:5px;background:var(--em);border-radius:50%;flex-shrink:0;box-shadow:0 0 8px var(--em)}
+@keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+/* ── Gradient text ── */
+.grad-text{background:linear-gradient(135deg,var(--em2),var(--em),var(--em4));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+
+/* ── Partners marquee ── */
+.partners-section{padding:60px 64px;max-width:1220px;margin:0 auto;text-align:center}
+.partners-label{font-size:11.5px;text-transform:uppercase;letter-spacing:2px;color:var(--text-dim);margin-bottom:28px}
+.partners-row{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.partner-pill{
+  background:var(--em-dim2);border:1px solid var(--glass-border);
+  padding:10px 26px;border-radius:100px;font-size:13px;font-weight:600;
+  color:var(--text-dim);letter-spacing:.3px;transition:all .3s;cursor:default;
+}
+.partner-pill:hover{border-color:var(--em-border);color:var(--em2);background:var(--em-dim)}
+
+/* ── Numbers strip ── */
+.numbers-strip{background:linear-gradient(180deg,transparent,var(--em-dim2));border-top:1px solid var(--em-border);border-bottom:1px solid var(--em-border);padding:60px 64px}
+.numbers-inner{max-width:1220px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:0}
+.num-item{text-align:center;padding:0 32px;border-right:1px solid var(--em-border);position:relative}
+.num-item:last-child{border-right:none}
+.num-val{font-family:'Syne',sans-serif;font-size:54px;font-weight:800;color:var(--em);letter-spacing:-2.5px;line-height:1}
+.num-val sup{font-size:26px;letter-spacing:0;color:var(--em2)}
+.num-label{font-size:13px;color:var(--text-muted);margin-top:10px}
+
+/* ── Bento features ── */
+.bento-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px;margin-top:52px}
+.bento-cell{
+  background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:var(--radius);
+  padding:30px;overflow:hidden;position:relative;transition:all .35s cubic-bezier(.22,1,.36,1);
+  backdrop-filter:blur(16px);
+}
+.bento-cell:hover{border-color:var(--em-border);transform:translateY(-3px);box-shadow:0 20px 60px rgba(0,0,0,.35),0 0 0 1px var(--em-border) inset}
+.bc-1{grid-column:span 7;grid-row:span 2}
+.bc-2{grid-column:span 5}
+.bc-3{grid-column:span 5}
+.bc-4{grid-column:span 4}
+.bc-5{grid-column:span 4}
+.bc-6{grid-column:span 4}
+.bc-7{grid-column:span 6}
+.bc-8{grid-column:span 6}
+.bento-icon{font-size:30px;margin-bottom:16px;display:inline-flex;width:54px;height:54px;background:var(--em-dim);border:1px solid var(--em-border);border-radius:13px;align-items:center;justify-content:center}
+.bento-tag{display:inline-block;background:var(--em-dim);color:var(--em2);font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;padding:4px 12px;border-radius:100px;border:1px solid var(--em-border);margin-bottom:14px}
+.bento-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:700;letter-spacing:-.5px;margin-bottom:10px;line-height:1.2;color:var(--text)}
+.bc-1 .bento-title{font-size:30px;letter-spacing:-1px}
+.bento-desc{font-size:13.5px;color:var(--text-muted);line-height:1.65}
+.bento-metric{font-family:'Syne',sans-serif;font-size:48px;font-weight:800;color:var(--em);letter-spacing:-2px;line-height:1;margin-top:18px}
+.bento-metric-label{font-size:12.5px;color:var(--text-dim);margin-top:6px}
+
+/* Mock chat inside bento */
+.mock-deal{margin-top:22px;background:rgba(5,9,8,0.5);border-radius:12px;padding:18px;border:1px solid var(--card-border)}
+.mock-deal-row{display:flex;align-items:flex-start;gap:10px;margin-bottom:12px;font-size:12.5px}
+.mock-ava{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--em),var(--em3));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;flex-shrink:0;color:#fff}
+.mock-ava.purple{background:linear-gradient(135deg,#8b5cf6,#6d28d9)}
+.mock-msg{background:var(--em-dim);border:1px solid var(--em-border);padding:8px 13px;border-radius:11px;border-bottom-left-radius:3px;color:var(--text-muted);max-width:80%}
+.mock-msg.right{background:rgba(255,255,255,.05);border-color:var(--card-border);border-bottom-right-radius:3px;border-bottom-left-radius:11px;margin-left:auto}
+.mock-status-row{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid var(--card-border);font-size:11px;color:var(--em2)}
+.mock-dot-live{width:6px;height:6px;background:var(--em);border-radius:50%;animation:blink 1.5s ease infinite;box-shadow:0 0 6px var(--em)}
+
+/* Progress bars */
+.bento-progress{margin-top:18px}
+.bp-row{display:flex;justify-content:space-between;font-size:12px;color:var(--text-dim);margin-bottom:8px}
+.bp-row b{color:var(--em2);font-weight:600}
+.bp-bar{height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden}
+.bp-fill{height:100%;background:linear-gradient(90deg,var(--em3),var(--em2));border-radius:3px;transform-origin:left;animation:fillBar 2s cubic-bezier(.22,1,.36,1) forwards;width:var(--w,60%)}
+@keyframes fillBar{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+
+/* Document list mock */
+.mock-docs{margin-top:18px;display:flex;flex-direction:column;gap:8px}
+.mock-doc{display:flex;align-items:center;gap:10px;background:rgba(5,9,8,0.4);padding:10px 14px;border-radius:9px;border:1px solid var(--card-border);font-size:12.5px;color:var(--text-muted)}
+.mock-doc-ico{color:var(--em);font-size:14px}
+
+/* ── Timeline ── */
+.timeline{position:relative;margin-top:60px}
+.timeline::before{content:'';position:absolute;left:28px;top:0;bottom:0;width:1px;background:linear-gradient(180deg,var(--em-border),transparent)}
+.tl-item{display:flex;gap:28px;margin-bottom:52px;position:relative}
+.tl-num{
+  width:56px;height:56px;flex-shrink:0;border-radius:14px;
+  background:var(--em-dim);border:1px solid var(--em-border);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--em);
+  position:relative;z-index:1;backdrop-filter:blur(8px);
+}
+.tl-content{padding-top:10px}
+.tl-content h3{font-size:18px;font-weight:600;margin-bottom:8px;color:var(--text)}
+.tl-content p{font-size:14px;color:var(--text-muted);line-height:1.7;max-width:540px}
+.tl-tag{display:inline-block;margin-top:12px;font-size:11px;color:var(--em);background:var(--em-dim);border:1px solid var(--em-border);padding:3px 12px;border-radius:100px}
+
+/* ── Categories ── */
+.categories-section{padding:100px 64px;max-width:1220px;margin:0 auto}
+.cat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:48px}
+.cat-card{
+  background:var(--glass-bg);border:1px solid var(--glass-border);
+  border-radius:var(--radius);padding:32px 24px;text-align:center;
+  transition:all .3s cubic-bezier(.22,1,.36,1);cursor:pointer;backdrop-filter:blur(12px);
+  display:block;color:inherit;
+}
+.cat-card:hover{border-color:var(--em-border);transform:translateY(-4px);background:var(--em-dim2);box-shadow:0 16px 48px rgba(0,0,0,.3)}
+.cat-emoji{font-size:36px;margin-bottom:14px;display:inline-block;transition:transform .3s}
+.cat-card:hover .cat-emoji{transform:scale(1.12) rotate(-4deg)}
+.cat-name{font-size:15px;font-weight:600;margin-bottom:8px;color:var(--text)}
+.cat-count{font-size:12.5px;color:var(--em);font-weight:600}
+
+/* ── Investors online block ── */
+.investors-section{padding:100px 64px;max-width:1220px;margin:0 auto}
+.inv-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:48px}
+.inv-card{
+  background:var(--glass-bg);border:1px solid var(--glass-border);
+  border-radius:var(--radius);padding:24px;
+  transition:all .3s cubic-bezier(.22,1,.36,1);backdrop-filter:blur(12px);
+  position:relative;
+}
+.inv-card:hover{border-color:var(--em-border);transform:translateY(-3px)}
+.inv-top{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+.inv-ava{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--em),var(--em3));display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;flex-shrink:0;color:#fff;position:relative}
+.inv-online-dot{position:absolute;bottom:-2px;right:-2px;width:14px;height:14px;border-radius:50%;background:var(--em);border:2px solid var(--bg);box-shadow:0 0 8px var(--em);animation:pulseOnline 2s ease-in-out infinite}
+@keyframes pulseOnline{0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,.6)}50%{box-shadow:0 0 0 6px rgba(16,185,129,0)}}
+.inv-name{font-size:14.5px;font-weight:600;color:var(--text)}
+.inv-focus{font-size:12px;color:var(--text-muted);margin-top:2px}
+.inv-stats{display:flex;gap:8px;flex-wrap:wrap}
+.inv-stat{background:var(--em-dim);color:var(--em2);padding:4px 11px;border-radius:100px;border:1px solid var(--em-border);font-size:11.5px;font-weight:500}
+
+/* Empty state for online investors */
+.inv-empty{
+  background:var(--glass-bg);border:1px dashed var(--em-border);
+  border-radius:var(--radius);padding:48px 32px;text-align:center;
+  backdrop-filter:blur(12px);margin-top:36px;
+}
+.inv-empty-icon{font-size:36px;margin-bottom:16px;opacity:.4}
+.inv-empty p{font-size:14px;color:var(--text-muted);line-height:1.65}
+
+/* ── Testimonials ── */
+.testi-ticker{overflow:hidden;margin-top:52px;position:relative;cursor:grab}
+.testi-ticker::before,.testi-ticker::after{content:'';position:absolute;top:0;bottom:0;width:120px;z-index:2;pointer-events:none}
+.testi-ticker::before{left:0;background:linear-gradient(90deg,var(--bg),transparent)}
+.testi-ticker::after{right:0;background:linear-gradient(-90deg,var(--bg),transparent)}
+.testi-ticker:active{cursor:grabbing}
+.testi-track{display:flex;gap:16px;animation:testiScroll 50s linear infinite;width:max-content}
+.testi-ticker:hover .testi-track{animation-play-state:paused}
+@keyframes testiScroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.testi-card-sm{
+  width:340px;flex-shrink:0;
+  background:var(--glass-bg);border:1px solid var(--glass-border);
+  border-radius:var(--radius);padding:24px;backdrop-filter:blur(12px);
+}
+.tc-top{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.tc-ava{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--em),var(--em3));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0;color:#fff}
+.tc-name{font-size:14px;font-weight:600;color:var(--text)}
+.tc-role{font-size:11.5px;color:var(--text-muted)}
+.tc-stars{color:var(--em);font-size:13px;letter-spacing:3px;margin-bottom:12px}
+.tc-text{font-size:13px;color:var(--text-muted);line-height:1.65}
+
+/* No reviews fallback */
+.testi-empty{
+  background:var(--glass-bg);border:1px dashed var(--em-border);
+  border-radius:var(--radius);padding:48px 32px;text-align:center;
+  margin-top:36px;backdrop-filter:blur(12px);
+}
+
+/* ── CTA glass card ── */
+.cta-glass{
+  margin:0 64px 80px;border-radius:28px;
+  background:linear-gradient(135deg,var(--em-dim),rgba(5,150,105,.04));
+  border:1px solid var(--em-border-strong);overflow:hidden;position:relative;
+  backdrop-filter:blur(28px);
+}
+.cta-glass::before{content:'';position:absolute;top:-1px;left:10%;right:10%;height:1px;background:linear-gradient(90deg,transparent,var(--em),transparent)}
+.cta-glass::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% -20%,rgba(16,185,129,.18),transparent 65%);pointer-events:none}
+.cta-glass-inner{position:relative;z-index:1;padding:90px 80px;text-align:center}
+.cta-glass h2{font-family:'Syne',sans-serif;font-size:54px;font-weight:800;letter-spacing:-2px;margin-bottom:20px;line-height:1.05;color:var(--text)}
+.cta-glass p{font-size:17px;color:var(--text-muted);margin-bottom:40px;line-height:1.7;max-width:560px;margin-left:auto;margin-right:auto}
+.cta-glass-btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.cta-orb{position:absolute;border-radius:50%;filter:blur(80px);pointer-events:none}
+.co-1{width:340px;height:340px;background:rgba(16,185,129,.16);top:-100px;left:-60px}
+.co-2{width:240px;height:240px;background:rgba(52,211,153,.1);bottom:-60px;right:-40px}
+
+/* ── Responsive ── */
+@media(max-width:1100px){
+  .hero-grid{grid-template-columns:1fr}
+  .hero-right{display:none}
+  .bento-grid{grid-template-columns:1fr 1fr}
+  .bc-1,.bc-7,.bc-8{grid-column:span 2}
+  .bc-2,.bc-3,.bc-4,.bc-5,.bc-6{grid-column:span 1}
+}
+@media(max-width:768px){
+  .hero-wrap{padding:80px 20px 40px}
+  .bento-grid,.cat-grid,.inv-grid{grid-template-columns:1fr}
+  .bc-1,.bc-2,.bc-3,.bc-4,.bc-5,.bc-6,.bc-7,.bc-8{grid-column:span 1}
+  .numbers-inner{grid-template-columns:1fr 1fr;gap:24px}
+  .num-item{border-right:none;padding:0}
+  .cta-glass{margin:0 20px}
+  .cta-glass-inner{padding:60px 24px}
+  .cta-glass h2{font-size:34px}
+  .partners-section,.categories-section,.investors-section{padding:60px 20px}
+  .numbers-strip{padding:48px 20px}
+}
+</style>
+{% endblock %}
+{% block content %}
+
+<!-- ═══ HERO ═══════════════════════════════════════════════════════════════════ -->
+<section class="hero-wrap">
+  <div class="hero-grid">
+    <div class="hero-left">
+      <div class="hero-badge" style="animation:fadeDown .6s ease both">
+        <span></span> Уже {{ stats.total_startups }}+ стартапов на платформе
+      </div>
+
+      <h1 style="font-family:'Syne',sans-serif;font-size:64px;font-weight:800;line-height:1.05;letter-spacing:-2.5px;margin-bottom:24px;animation:fadeUp .7s .1s ease both">
+        Продай или купи стартап<br><span class="grad-text">без посредников</span>
+      </h1>
+
+      <p style="font-size:17px;color:var(--text-muted);line-height:1.7;max-width:540px;margin-bottom:36px;animation:fadeUp .7s .2s ease both">
+        StartHub — платформа, где основатели встречают инвесторов. Прозрачные сделки, чат в реальном времени, мгновенное подключение менеджера. От первого контакта до подписанного договора.
+      </p>
+
+      <div style="display:flex;gap:14px;flex-wrap:wrap;animation:fadeUp .7s .3s ease both">
+        <a href="/catalog" class="btn-lg btn-primary-lg">Смотреть стартапы →</a>
+        <a href="/register" class="btn-lg btn-secondary-lg">Разместить стартап</a>
+      </div>
+    </div>
+
+    <!-- Side stats card (вместо разбросанного текста) -->
+    <div class="hero-right">
+      <div class="side-stats">
+        <div style="font-size:11.5px;color:var(--em2);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;display:flex;align-items:center;gap:8px">
+          <span style="width:6px;height:6px;background:var(--em);border-radius:50%;animation:blink 2s ease infinite;box-shadow:0 0 6px var(--em)"></span>
+          Платформа в цифрах
+        </div>
+        <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:600;color:var(--text);margin-bottom:8px">Реальные показатели</div>
+        <div style="font-size:13px;color:var(--text-muted);line-height:1.5;margin-bottom:12px">Данные обновляются автоматически на основе активности участников.</div>
+
+        <div class="ss-row">
+          <div class="ss-label">Стартапов в каталоге</div>
+          <div class="ss-value">{{ stats.total_startups }}<span class="ss-trend">+</span></div>
+        </div>
+        <div class="ss-row">
+          <div class="ss-label">Объём сделок</div>
+          <div class="ss-value">
+            {% if stats.total_volume >= 1000000000 %}₽{{ "%.1f"|format(stats.total_volume/1000000000) }}<span style="font-size:14px"> млрд</span>
+            {% elif stats.total_volume >= 1000000 %}₽{{ "%.1f"|format(stats.total_volume/1000000) }}<span style="font-size:14px"> млн</span>
+            {% else %}₽{{ "{:,.0f}".format(stats.total_volume).replace(',', ' ') }}{% endif %}
+          </div>
+        </div>
+        <div class="ss-row">
+          <div class="ss-label">Срок закрытия сделки</div>
+          <div class="ss-value">{{ stats.avg_days }}<span style="font-size:14px"> дня</span></div>
+        </div>
+        <div class="ss-row">
+          <div class="ss-label">Активных инвесторов</div>
+          <div class="ss-value">{{ stats.active_investors }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ TICKER ═════════════════════════════════════════════════════════════════ -->
+<div class="ticker-wrap">
+  <div class="ticker">
+    {% if startups %}
+      {% for s in startups %}
+      <span class="ticker-item">
+        <span class="ticker-dot"></span>
+        <b>{{ s.title }}</b> · {{ s.price | money }} · {{ s.stage or '—' }}
+      </span>
+      {% endfor %}
+      {% for s in startups %}
+      <span class="ticker-item">
+        <span class="ticker-dot"></span>
+        <b>{{ s.title }}</b> · {{ s.price | money }} · {{ s.stage or '—' }}
+      </span>
+      {% endfor %}
+    {% endif %}
+  </div>
+</div>
+
+<!-- ═══ PARTNERS ══════════════════════════════════════════════════════════════ -->
+<div class="partners-section reveal">
+  <div class="partners-label">Платформе доверяют участники из экосистем</div>
+  <div class="partners-row">
+    {% for p in ['Skolkovo', 'ФРИИ', 'РВК', 'Y-Combinator Alumni', 'VentureHub', 'GenerationS'] %}
+    <div class="partner-pill">{{ p }}</div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- ═══ NUMBERS ═══════════════════════════════════════════════════════════════ -->
+<div class="numbers-strip">
+  <div class="numbers-inner">
+    <div class="num-item reveal">
+      <div class="num-val">{{ stats.total_startups }}<sup>+</sup></div>
+      <div class="num-label">стартапов в каталоге</div>
+    </div>
+    <div class="num-item reveal reveal-delay-1">
+      <div class="num-val">
+        {% if stats.total_volume >= 1000000000 %}₽{{ "%.1f"|format(stats.total_volume/1000000000) }}<sup>млрд</sup>
+        {% elif stats.total_volume >= 1000000 %}₽{{ "%.0f"|format(stats.total_volume/1000000) }}<sup>млн</sup>
+        {% else %}₽{{ "%.0f"|format(stats.total_volume/1000) }}<sup>тыс</sup>{% endif %}
+      </div>
+      <div class="num-label">суммарный объём сделок</div>
+    </div>
+    <div class="num-item reveal reveal-delay-2">
+      <div class="num-val">{{ stats.active_investors }}</div>
+      <div class="num-label">активных инвесторов</div>
+    </div>
+    <div class="num-item reveal reveal-delay-3">
+      <div class="num-val">{{ stats.avg_days }}<sup>дн</sup></div>
+      <div class="num-label">средний срок закрытия</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ FEATURES BENTO ════════════════════════════════════════════════════════ -->
+<section class="section" id="why">
+  <div class="section-label reveal">Возможности</div>
+  <h2 class="section-title reveal reveal-delay-1">Всё нужное для закрытия<br>успешной сделки</h2>
+  <p class="section-sub reveal reveal-delay-2">Инструменты, которые превращают первый контакт в подписанный договор — без звонков и таблиц.</p>
+
+  <div class="bento-grid">
+    <!-- Big: deal chat -->
+    <div class="bento-cell bc-1 reveal">
+      <div class="bento-tag">Ключевая функция</div>
+      <div class="bento-title">Чат прямо внутри сделки</div>
+      <div class="bento-desc">Вся переписка привязана к конкретной сделке. Участники видят историю, документы и статус прямо в одном окне. Напишите @manager — и менеджер подключится в течение минуты.</div>
+      <div class="mock-deal">
+        <div class="mock-deal-row">
+          <div class="mock-ava">ДК</div>
+          <div class="mock-msg">Готов рассмотреть ₽ 10 млн за 18% доли</div>
+        </div>
+        <div class="mock-deal-row" style="flex-direction:row-reverse">
+          <div class="mock-ava" style="background:linear-gradient(135deg,#059669,#047857)">МР</div>
+          <div class="mock-msg right">Звучит интересно. Давайте обсудим детали term sheet</div>
+        </div>
+        <div class="mock-deal-row">
+          <div class="mock-ava purple">КС</div>
+          <div class="mock-msg">@manager подключился. Готов модерировать переговоры</div>
+        </div>
+        <div class="mock-status-row">
+          <span class="mock-dot-live"></span> 3 участника онлайн · Сделка активна
+        </div>
+      </div>
+    </div>
+
+    <!-- Verification + Documents side by side -->
+    <div class="bento-cell bc-2 reveal reveal-delay-1">
+      <div class="bento-icon">🛡️</div>
+      <div class="bento-title" style="font-size:19px">Верификация и проверка</div>
+      <div class="bento-desc">Каждый стартап и инвестор проходит базовую проверку. Никаких пустышек и фейков — все участники реальные.</div>
+      <div class="bento-metric">100%</div>
+      <div class="bento-metric-label">проверенных участников</div>
+    </div>
+
+    <div class="bento-cell bc-3 reveal reveal-delay-2">
+      <div class="bento-icon">📄</div>
+      <div class="bento-title" style="font-size:19px">Документооборот</div>
+      <div class="bento-desc">NDA, term sheet, договор — загрузка и хранение прямо в платформе. Все документы привязаны к сделке.</div>
+      <div class="mock-docs">
+        <div class="mock-doc"><span class="mock-doc-ico">📎</span> NDA_signed.pdf</div>
+        <div class="mock-doc"><span class="mock-doc-ico">📎</span> TermSheet_v2.docx</div>
+        <div class="mock-doc"><span class="mock-doc-ico">📎</span> Contract_final.pdf</div>
+      </div>
+    </div>
+
+    <!-- Three small cards: analytics, speed, support -->
+    <div class="bento-cell bc-4 reveal reveal-delay-1">
+      <div class="bento-icon">📊</div>
+      <div class="bento-title" style="font-size:18px">Аналитика</div>
+      <div class="bento-desc">Просмотры, конверсия, динамика интереса.</div>
+      <div class="bento-progress">
+        <div class="bp-row"><span>Просмотры</span><b>+120%</b></div>
+        <div class="bp-bar"><div class="bp-fill" style="--w:80%"></div></div>
+      </div>
+      <div class="bento-progress">
+        <div class="bp-row"><span>Конверсия</span><b>34%</b></div>
+        <div class="bp-bar"><div class="bp-fill" style="--w:34%"></div></div>
+      </div>
+      <div class="bento-progress">
+        <div class="bp-row"><span>NPS</span><b>72</b></div>
+        <div class="bp-bar"><div class="bp-fill" style="--w:72%"></div></div>
+      </div>
+    </div>
+
+    <div class="bento-cell bc-5 reveal reveal-delay-2">
+      <div class="bento-icon">⚡</div>
+      <div class="bento-title" style="font-size:18px">Скорость</div>
+      <div class="bento-desc">Первый контакт с инвестором — в течение 48 часов после публикации.</div>
+      <div class="bento-metric">48ч</div>
+      <div class="bento-metric-label">до первого контакта</div>
+    </div>
+
+    <div class="bento-cell bc-6 reveal reveal-delay-3">
+      <div class="bento-icon">💬</div>
+      <div class="bento-title" style="font-size:18px">Поддержка</div>
+      <div class="bento-desc">Тикеты с приоритетами. Менеджер отвечает в течение 24 часов.</div>
+      <div class="bento-metric">24ч</div>
+      <div class="bento-metric-label">SLA по тикетам</div>
+    </div>
+
+    <!-- Bottom row: wallet + reviews -->
+    <div class="bento-cell bc-7 reveal">
+      <div class="bento-tag">Финансы</div>
+      <div class="bento-title">Кошелёк и безопасные расчёты</div>
+      <div class="bento-desc">Встроенный баланс с историей транзакций. Депозит и вывод без комиссии. Работаем над escrow для полной безопасности переводов.</div>
+      <div style="margin-top:20px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+        {% for label, val in [('Доступно', '₽ 0'), ('Резерв', '₽ 0'), ('Комиссия', '0%')] %}
+        <div style="background:rgba(5,9,8,0.5);padding:14px;border-radius:10px;border:1px solid var(--card-border);text-align:center">
+          <div style="font-size:11px;color:var(--text-dim);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">{{ label }}</div>
+          <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--em)">{{ val }}</div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="bento-cell bc-8 reveal reveal-delay-1">
+      <div class="bento-icon">⭐</div>
+      <div class="bento-title">Рейтинги и отзывы</div>
+      <div class="bento-desc">Реальные отзывы после завершённых сделок. Репутация важна — фейки невозможны.</div>
+      <div style="margin-top:16px;display:flex;gap:6px;align-items:center">
+        {% for i in range(5) %}<span style="font-size:22px;color:var(--em)">★</span>{% endfor %}
+        <span style="font-size:13px;color:var(--text-muted);margin-left:8px">4.8 · {{ landing_reviews|length }} отзывов</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ CATEGORIES (real counts from DB) ═══════════════════════════════════════ -->
+{% if categories %}
+<section class="categories-section" id="catalog">
+  <div class="section-label reveal">Каталог</div>
+  <h2 class="section-title reveal reveal-delay-1">Стартапы по категориям</h2>
+  <p class="section-sub reveal reveal-delay-2">Выберите нишу — найдём подходящий проект или инвестора.</p>
+  <div class="cat-grid">
+    {% for cat in categories %}
+    <a href="/catalog?category={{ cat.name }}" class="cat-card reveal" style="transition-delay:{{ loop.index0 * 0.05 }}s">
+      <div class="cat-emoji">{{ cat.emoji }}</div>
+      <div class="cat-name">{{ cat.name }}</div>
+      <div class="cat-count">{{ cat.count }} {% if cat.count == 1 %}стартап{% elif cat.count < 5 %}стартапа{% else %}стартапов{% endif %}</div>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<!-- ═══ CATALOG PREVIEW ════════════════════════════════════════════════════════ -->
+<section class="catalog-section">
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:16px;margin-bottom:0">
+    <div>
+      <div class="section-label reveal">Свежие</div>
+      <h2 class="section-title reveal reveal-delay-1" style="margin-bottom:0">Стартапы на платформе</h2>
+    </div>
+    <a href="/catalog" class="btn-ghost reveal">Весь каталог →</a>
+  </div>
+  <div class="startups-grid">
+    {% for startup in startups %}
+    <a href="/startup/{{ startup.slug }}" class="startup-card reveal" style="transition-delay:{{ loop.index0 * 0.08 }}s">
+      <div class="sc-cover">
+        {% if startup.cover_image %}
+          <img src="{{ startup.cover_image }}" class="sc-cover-img" alt="{{ startup.title }}">
+        {% else %}
+          <div class="sc-cover-inner">{{ startup.emoji or '🚀' }}</div>
+        {% endif %}
+        {% if startup.is_featured %}<div class="sc-badge">⭐ Featured</div>{% endif %}
+      </div>
+      <div class="sc-body">
+        <div class="sc-cat">{{ startup.category }}</div>
+        <div class="sc-title">{{ startup.title }}</div>
+        <div class="sc-desc">{{ (startup.tagline or startup.description or '')[:110] }}</div>
+        <div class="sc-footer">
+          <div class="sc-invest">{{ startup.price | money }}</div>
+          <div class="sc-stage">{{ startup.stage }}</div>
+        </div>
+      </div>
+    </a>
+    {% else %}
+    <div style="grid-column:span 3;text-align:center;padding:80px;color:var(--text-muted)">
+      <div style="font-size:40px;margin-bottom:16px">🚀</div>
+      <p>Стартапы появятся здесь совсем скоро</p>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+<!-- ═══ HOW IT WORKS ═══════════════════════════════════════════════════════════ -->
+<section class="section" id="how">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:start">
+    <div>
+      <div class="section-label reveal">Процесс</div>
+      <h2 class="section-title reveal reveal-delay-1">Как работает<br>StartHub</h2>
+      <p class="section-sub reveal reveal-delay-2">От регистрации до закрытой сделки — без посредников и звонков вхолостую.</p>
+    </div>
+    <div class="timeline">
+      {% set steps = [
+        ('01', 'Создайте страницу стартапа', 'Заполните карточку: идея, стадия, финансовые показатели, pitch deck. Займёт 5 минут.', 'Для основателей'),
+        ('02', 'Инвесторы находят вас', 'Каталог с умным поиском по категориям, стадии и сумме. Уведомление приходит сразу.', 'Для инвесторов'),
+        ('03', 'Переговоры в чате сделки', 'Вся коммуникация, документы и статус — в одном окне. Менеджер подключается по запросу.', 'Real-time'),
+        ('04', 'Подписание и закрытие', 'Документы подгружаются прямо в сделку. Финальная фиксация результата с обеих сторон.', 'Безопасно'),
+      ] %}
+      {% for num, title, desc, tag in steps %}
+      <div class="tl-item reveal" style="transition-delay:{{ loop.index0 * 0.1 }}s">
+        <div class="tl-num">{{ num }}</div>
+        <div class="tl-content">
+          <h3>{{ title }}</h3>
+          <p>{{ desc }}</p>
+          <span class="tl-tag">{{ tag }}</span>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ═══ INVESTORS ONLINE — REAL ═══════════════════════════════════════════════ -->
+<section class="investors-section">
+  <div class="section-label reveal">Инвесторы</div>
+  <h2 class="section-title reveal reveal-delay-1">
+    {% if online_investors %}
+      Инвесторы онлайн<br><span style="color:var(--em);font-size:36px">прямо сейчас</span>
+    {% else %}
+      Активные инвесторы<br><span class="grad-text">на платформе</span>
+    {% endif %}
+  </h2>
+  <p class="section-sub reveal reveal-delay-2">
+    {% if online_investors %}
+      {{ online_investors|length }} {% if online_investors|length == 1 %}инвестор находится{% else %}инвесторов находятся{% endif %} в сети и ищет проекты прямо сейчас.
+    {% else %}
+      Всего {{ stats.active_investors }} верифицированных инвесторов активны на платформе.
+    {% endif %}
+  </p>
+
+  {% if online_investors %}
+  <div class="inv-grid">
+    {% for inv in online_investors[:4] %}
+    {% set fn = (inv.full_name or inv.username or 'И') %}
+    {% set initials = fn.split()[0][0] + (fn.split()[1][0] if fn.split()|length > 1 else '') %}
+    <div class="inv-card reveal" style="transition-delay:{{ loop.index0 * 0.08 }}s">
+      <div class="inv-top">
+        <div class="inv-ava">
+          {% if inv.avatar %}<img src="{{ inv.avatar }}" style="width:100%;height:100%;border-radius:50%;object-fit:cover" alt="">{% else %}{{ initials|upper }}{% endif %}
+          <span class="inv-online-dot"></span>
+        </div>
+        <div>
+          <div class="inv-name">{{ inv.full_name or inv.username }}</div>
+          <div class="inv-focus">{{ inv.location or 'Инвестор' }}</div>
+        </div>
+      </div>
+      <div class="inv-stats">
+        <span class="inv-stat">🟢 Онлайн</span>
+        {% if inv.is_verified %}<span class="inv-stat">✓ Verified</span>{% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  <div style="text-align:center;margin-top:32px">
+    <a href="/investors" class="btn-ghost reveal">Все инвесторы →</a>
+  </div>
+  {% else %}
+  <div class="inv-empty reveal">
+    <div class="inv-empty-icon">🌙</div>
+    <p>Сейчас никто из инвесторов не онлайн.<br>Зарегистрируйтесь и оставьте заявку — мы уведомим инвестора при первом совпадении интересов.</p>
+    <a href="/register" class="btn-ghost" style="margin-top:20px;display:inline-block">Зарегистрироваться</a>
+  </div>
+  {% endif %}
+</section>
+
+<!-- ═══ TESTIMONIALS — REAL ════════════════════════════════════════════════════ -->
+{% if landing_reviews %}
+<section class="section" style="padding-bottom:0">
+  <div class="section-label reveal">Отзывы</div>
+  <h2 class="section-title reveal reveal-delay-1">Что говорят участники</h2>
+  <p class="section-sub reveal reveal-delay-2">Реальные кейсы — реальные слова от пользователей платформы.</p>
+</section>
+<div style="padding:0;max-width:100%;overflow:hidden">
+  <div class="testi-ticker">
+    <div class="testi-track">
+      {% for review in landing_reviews %}
+        {% set fn = (review.author.full_name or review.author.username or 'У') %}
+        {% set parts = fn.split() %}
+        {% set initials = parts[0][0] + (parts[1][0] if parts|length > 1 else '') %}
+        <div class="testi-card-sm">
+          <div class="tc-top">
+            <div class="tc-ava">
+              {% if review.author.avatar %}<img src="{{ review.author.avatar }}" style="width:100%;height:100%;border-radius:50%;object-fit:cover" alt="">{% else %}{{ initials|upper }}{% endif %}
+            </div>
+            <div>
+              <div class="tc-name">{{ review.author.full_name or review.author.username }}</div>
+              <div class="tc-role">{% if review.startup %}о «{{ review.startup.title }}»{% else %}Участник платформы{% endif %}</div>
+            </div>
+          </div>
+          <div class="tc-stars">{% for i in range(review.rating) %}★{% endfor %}{% for i in range(5-review.rating) %}<span style="color:var(--text-dim)">★</span>{% endfor %}</div>
+          <div class="tc-text">{{ review.comment or '—' }}</div>
+        </div>
+      {% endfor %}
+      <!-- duplicate for seamless loop -->
+      {% for review in landing_reviews %}
+        {% set fn = (review.author.full_name or review.author.username or 'У') %}
+        {% set parts = fn.split() %}
+        {% set initials = parts[0][0] + (parts[1][0] if parts|length > 1 else '') %}
+        <div class="testi-card-sm">
+          <div class="tc-top">
+            <div class="tc-ava">{{ initials|upper }}</div>
+            <div>
+              <div class="tc-name">{{ review.author.full_name or review.author.username }}</div>
+              <div class="tc-role">{% if review.startup %}о «{{ review.startup.title }}»{% else %}Участник{% endif %}</div>
+            </div>
+          </div>
+          <div class="tc-stars">{% for i in range(review.rating) %}★{% endfor %}</div>
+          <div class="tc-text">{{ review.comment or '—' }}</div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% else %}
+<section class="section">
+  <div class="section-label reveal">Отзывы</div>
+  <h2 class="section-title reveal reveal-delay-1">Что говорят участники</h2>
+  <div class="testi-empty reveal">
+    <div style="font-size:36px;margin-bottom:14px;opacity:.4">💬</div>
+    <p style="font-size:14px;color:var(--text-muted)">Первые отзывы появятся после закрытия первых сделок. <br>Видимостью отзывов на главной управляет администратор.</p>
+  </div>
+</section>
+{% endif %}
+
+<!-- ═══ PRICING ════════════════════════════════════════════════════════════════ -->
+<section class="pricing-section">
+  <div class="section-label reveal">Тарифы</div>
+  <h2 class="section-title reveal reveal-delay-1">Прозрачные цены<br>для любого этапа</h2>
+  <p style="font-size:15px;color:var(--text-muted);max-width:480px;margin:12px auto 0" class="reveal reveal-delay-2">Никаких скрытых комиссий. Смена тарифа — в любой момент.</p>
+  <div class="pricing-grid" style="margin-top:52px">
+    <div class="price-card reveal reveal-delay-1">
+      <div style="font-size:26px;margin-bottom:12px">🌱</div>
+      <div class="price-name">Starter</div>
+      <div class="price-amount">₽ 4 990<span>/мес</span></div>
+      <div class="price-period">Для первых шагов</div>
+      <ul class="price-features">
+        {% for f in ['1 стартап в каталоге', 'До 3 активных сделок', 'Базовый чат в сделке', 'До 3 документов', 'Email поддержка'] %}
+        <li>{{ f }}</li>{% endfor %}
+      </ul>
+      <a href="/register" class="btn-full btn-outline-full">Начать бесплатно</a>
+    </div>
+    <div class="price-card featured reveal reveal-delay-2">
+      <div style="font-size:26px;margin-bottom:12px;color:var(--em)">🚀</div>
+      <div class="price-name" style="color:var(--em)">Pro</div>
+      <div class="price-amount">₽ 14 990<span>/мес</span></div>
+      <div class="price-period">Для активного роста</div>
+      <ul class="price-features">
+        {% for f in ['До 5 стартапов', 'Неограниченные сделки', 'Приоритет в каталоге', '@manager в чате', 'Аналитика просмотров', 'До 50 документов', 'Чат поддержки 24ч'] %}
+        <li>{{ f }}</li>{% endfor %}
+      </ul>
+      <a href="/register" class="btn-full btn-em-full">Выбрать Pro</a>
+    </div>
+    <div class="price-card reveal reveal-delay-3">
+      <div style="font-size:26px;margin-bottom:12px">⚡</div>
+      <div class="price-name">Enterprise</div>
+      <div class="price-amount">₽ 39 990<span>/мес</span></div>
+      <div class="price-period">Для масштаба</div>
+      <ul class="price-features">
+        {% for f in ['Без ограничений', 'Выделенный менеджер', 'Белый лейбл', 'API доступ', 'SLA 99.9%', 'Приоритетная поддержка 24/7'] %}
+        <li>{{ f }}</li>{% endfor %}
+      </ul>
+      <a href="/contact" class="btn-full btn-outline-full">Связаться с нами</a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ FAQ ════════════════════════════════════════════════════════════════════ -->
+<section class="faq-section">
+  <div class="section-label reveal">FAQ</div>
+  <h2 class="section-title reveal reveal-delay-1">Частые вопросы</h2>
+  <div class="faq-list" style="margin-top:40px">
+    {% set faqs = [
+      ('Как начать сделку?', 'Зарегистрируйтесь, найдите стартап в каталоге и нажмите «Начать сделку». Откроется чат — дальше всё происходит внутри платформы, включая документы и переговоры.'),
+      ('Что такое @manager в чате?', 'Напишите @manager в любой момент — доступные менеджеры получат уведомление и подключатся к вашей сделке. На Pro-тарифе — выделенный куратор.'),
+      ('Безопасно ли загружать документы?', 'Документы видят только участники конкретной сделки. Доступ управляется через роли — посторонние не увидят ничего.'),
+      ('Можно ли сменить тариф?', 'Да, повысить или понизить тариф можно в любой момент из личного кабинета.'),
+      ('Нужна ли верификация для размещения стартапа?', 'Базовая публикация — без верификации. Но верифицированные стартапы получают значок ✓ и выше ранжируются в каталоге.'),
+      ('Есть ли мобильное приложение?', 'Платформа полностью адаптирована для мобильных. Нативные приложения находятся в разработке.'),
+    ] %}
+    {% for q, a in faqs %}
+    <div class="faq-item {% if loop.first %}open{% endif %} reveal">
+      <div class="faq-q" onclick="toggleFaq(this)">{{ q }}<span class="faq-arrow">▾</span></div>
+      <div class="faq-a"><div class="faq-a-inner">{{ a }}</div></div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+<!-- ═══ CTA GLASS ══════════════════════════════════════════════════════════════ -->
+<div class="cta-glass reveal">
+  <div class="cta-orb co-1"></div>
+  <div class="cta-orb co-2"></div>
+  <div class="cta-glass-inner">
+    <div class="section-label" style="margin-bottom:24px">Начать прямо сейчас</div>
+    <h2>Готов запустить что-то<br><span class="grad-text">что реально работает?</span></h2>
+    <p>Создай страницу стартапа за 5 минут — прозрачный дизайн, реальные инвесторы, встроенный чат и документооборот.</p>
+    <div class="cta-glass-btns">
+      <a href="/register?role=author" class="btn-lg btn-primary-lg">Разместить стартап →</a>
+      <a href="/register?role=buyer" class="btn-lg btn-secondary-lg">Найти стартап для инвестиций</a>
+    </div>
+    <p style="margin-top:20px;font-size:12.5px;color:var(--text-dim)">Бесплатная регистрация · Первый месяц Starter бесплатно</p>
+  </div>
+</div>
+
+{% endblock %}

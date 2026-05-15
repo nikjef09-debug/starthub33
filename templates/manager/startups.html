@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Стартапы — Manager{% endblock %}
+{% block content %}
+<div class="admin-wrap">
+  {% include "manager/_sidebar.html" %}
+  <div class="admin-content">
+    <div class="admin-page-header"><div><h1>Активные стартапы</h1><p>{{ startups|length }} стартапов (только просмотр)</p></div></div>
+    <div style="background:rgba(168,85,247,0.05);border:1px solid rgba(168,85,247,0.2);border-radius:8px;padding:12px 16px;margin-bottom:20px;font-size:13px;color:#c084fc">
+      ℹ Менеджер может просматривать стартапы. Редактирование и модерация доступны только администратору.
+    </div>
+    <div class="admin-table-card">
+      <table class="admin-table">
+        <thead><tr><th>Стартап</th><th>Автор</th><th>Категория</th><th>Цена</th><th>Просмотры</th><th>Сделки</th></tr></thead>
+        <tbody>
+          {% for s in startups %}
+          <tr>
+            <td><a href="/startup/{{ s.slug }}" style="color:var(--orange2);font-size:13px;font-weight:500">{{ s.title[:40] }}</a></td>
+            <td style="font-size:12px;color:var(--text-muted)">{{ s.author.full_name or s.author.username }}</td>
+            <td style="font-size:12px;color:var(--text-dim)">{{ s.category }}</td>
+            <td style="color:var(--orange);font-weight:600;font-size:13px">{{ s.price | money }}</td>
+            <td style="color:var(--text-muted);font-size:13px">{{ s.views_count }}</td>
+            <td style="color:var(--text-muted);font-size:13px">{{ s.deals_count }}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-dim)">Нет данных</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

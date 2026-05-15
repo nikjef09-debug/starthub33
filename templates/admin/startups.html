@@ -1,0 +1,75 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Стартапы — Admin{% endblock %}
+
+{% block admin_content %}
+<div class="page-h">
+  <div class="page-h-left">
+    <h1>Стартапы</h1>
+    <p>Управление каталогом проектов · {{ startups|length }} стартапов</p>
+  </div>
+</div>
+
+<div class="table-wrap reveal">
+  <table class="tbl">
+    <thead>
+      <tr>
+        <th>Стартап</th>
+        <th>Автор</th>
+        <th>Категория</th>
+        <th>Цена</th>
+        <th>Просм.</th>
+        <th>Статус</th>
+        <th style="text-align:right">Действия</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for s in startups %}
+      <tr>
+        <td>
+          <div style="display:flex;align-items:center;gap:11px">
+            <div style="width:36px;height:36px;border-radius:9px;background:var(--em-dim);border:1px solid var(--em-border);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">{{ s.emoji or '🚀' }}</div>
+            <div>
+              <div class="tbl-name">
+                {% if s.is_featured %}<span title="Featured" style="color:var(--em);margin-right:4px">★</span>{% endif %}
+                {% if s.is_verified %}<span title="Verified" style="color:var(--em2);margin-right:4px">✓</span>{% endif %}
+                {{ s.title }}
+              </div>
+              <div style="font-size:11px;color:var(--text-dim);margin-top:2px">{{ s.stage or '—' }}</div>
+            </div>
+          </div>
+        </td>
+        <td>{{ s.author.full_name or s.author.username if s.author else '—' }}</td>
+        <td><span class="badge badge-grey">{{ s.category or '—' }}</span></td>
+        <td style="font-weight:600;color:var(--em2)">{{ s.price | money }}</td>
+        <td>{{ s.views_count or 0 }}</td>
+        <td>
+          {% if s.status.value == 'active' %}<span class="badge badge-em">Активен</span>
+          {% elif s.status.value == 'draft' %}<span class="badge badge-grey">Черновик</span>
+          {% elif s.status.value == 'sold' %}<span class="badge badge-purple">Продан</span>
+          {% else %}<span class="badge badge-red">Архив</span>{% endif %}
+        </td>
+        <td style="text-align:right">
+          <div class="row-actions" style="justify-content:flex-end">
+            <a href="/startup/{{ s.slug }}" target="_blank" class="row-action" title="Открыть">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            </a>
+            <form method="post" action="/admin/startups/{{ s.id }}/feature" style="display:inline">
+              <button class="row-action" title="{% if s.is_featured %}Снять с featured{% else %}Сделать featured{% endif %}" style="{% if s.is_featured %}color:var(--em);border-color:var(--em-border){% endif %}">
+                <svg viewBox="0 0 24 24" fill="{% if s.is_featured %}currentColor{% else %}none{% endif %}" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+              </button>
+            </form>
+            <form method="post" action="/admin/startups/{{ s.id }}/verify" style="display:inline">
+              <button class="row-action" title="{% if s.is_verified %}Снять верификацию{% else %}Верифицировать{% endif %}" style="{% if s.is_verified %}color:var(--em2);border-color:var(--em-border){% endif %}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              </button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="7"><div class="empty"><div class="empty-icon">🚀</div><h3>Стартапов нет</h3><p>Появятся после первой публикации</p></div></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

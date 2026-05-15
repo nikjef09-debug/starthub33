@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}{% if startup %}Редактировать{% else %}Новый стартап{% endif %} — StartHub{% endblock %}
+{% block content %}
+<div class="startup-form-wrap">
+  <div style="margin-bottom:24px">
+    <a href="/my-startups" style="color:var(--text-muted);font-size:14px">← Мои стартапы</a>
+  </div>
+  <div class="startup-form-card">
+    <h1 style="font-size:26px;font-weight:700;margin-bottom:6px">
+      {% if startup %}Редактировать стартап{% else %}Создать новый стартап{% endif %}
+    </h1>
+    <p style="color:var(--text-muted);margin-bottom:32px">Заполните информацию о вашем проекте</p>
+
+    <form method="post" action="{% if startup %}/my-startups/{{ startup.id }}/edit{% else %}/my-startups/new{% endif %}" enctype="multipart/form-data">
+      <div class="form-group">
+        <label>Название стартапа *</label>
+        <input type="text" name="title" value="{{ startup.title if startup else '' }}" placeholder="NeuralFlow — автоматизация документов" required>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Категория</label>
+          <select name="category">
+            {% for cat in ['AI / ML', 'FinTech', 'HealthTech', 'GreenTech', 'EdTech', 'Logistics', 'SaaS', 'E-commerce', 'Other'] %}
+            <option value="{{ cat }}" {% if startup and startup.category == cat %}selected{% endif %}>{{ cat }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Стадия</label>
+          <select name="stage">
+            {% for st in ['Pre-seed', 'Seed', 'Series A', 'Series B', 'Series C'] %}
+            <option value="{{ st }}" {% if startup and startup.stage == st %}selected{% endif %}>{{ st }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Короткое описание (tagline)</label>
+        <input type="text" name="tagline" value="{{ startup.tagline if startup else '' }}" placeholder="ИИ для юридических документов">
+      </div>
+      <div class="form-group">
+        <label>Полное описание</label>
+        <textarea name="description" placeholder="Подробно расскажите о проекте, команде, технологии и планах..." style="min-height:160px">{{ startup.description if startup else '' }}</textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Эмодзи (иконка)</label>
+          <input type="text" name="emoji" value="{{ startup.emoji if startup else '🚀' }}" maxlength="4" placeholder="🚀">
+        </div>
+        <div class="form-group">
+          <label>Инвестиции (₽)</label>
+          <input type="number" name="price" value="{{ startup.price | int if startup and startup.price else '' }}" placeholder="5000000">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Выручка (₽)</label>
+          <input type="number" name="revenue" value="{{ startup.revenue | int if startup and startup.revenue else '' }}" placeholder="1000000">
+        </div>
+        <div class="form-group">
+          <label>Оценка компании (₽)</label>
+          <input type="number" name="valuation" value="{{ startup.valuation | int if startup and startup.valuation else '' }}" placeholder="25000000">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Обложка (фото)</label>
+        <div class="upload-form">
+          <label class="upload-label">
+            <input type="file" name="cover" accept="image/*" style="display:none">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <span>{% if startup and startup.cover_image %}Заменить обложку{% else %}Загрузить обложку{% endif %}</span>
+          </label>
+        </div>
+        {% if startup and startup.cover_image %}
+        <img src="{{ startup.cover_image }}" style="margin-top:10px;height:80px;border-radius:8px;object-fit:cover">
+        {% endif %}
+      </div>
+      <div style="display:flex;gap:12px;margin-top:8px">
+        <button type="submit" class="btn-orange" style="padding:13px 40px;font-size:15px">
+          {% if startup %}Сохранить изменения{% else %}Создать стартап{% endif %}
+        </button>
+        <a href="/my-startups" class="btn-ghost" style="padding:13px 24px">Отмена</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

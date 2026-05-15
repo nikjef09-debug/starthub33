@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Мои сделки — StartHub{% endblock %}
+{% block content %}
+<div class="page-wrap">
+  <div class="page-header">
+    <div>
+      <h1>Мои сделки</h1>
+      <p>Активные переговоры и история</p>
+    </div>
+    <a href="/catalog" class="btn-orange">Найти стартапы</a>
+  </div>
+
+  {% if deals %}
+  <div class="deals-list">
+    {% for deal in deals %}
+    <a href="/deal/{{ deal.id }}" class="deal-item" style="text-decoration:none">
+      <div class="deal-info">
+        <h3>{{ deal.startup.title }}</h3>
+        <p>
+          Покупатель: {{ deal.buyer.full_name or deal.buyer.username }}
+          {% if deal.amount %} · {{ deal.amount | money }}{% endif %}
+          · {{ deal.created_at.strftime('%d.%m.%Y') }}
+        </p>
+      </div>
+      <div class="deal-meta">
+        <span class="deal-status {{ deal.status.value }}">
+          {% if deal.status.value == 'pending' %}⏳ Ожидание
+          {% elif deal.status.value == 'active' %}✅ Активна
+          {% elif deal.status.value == 'documents' %}📄 Документы
+          {% elif deal.status.value == 'closed_ok' %}🎉 Закрыта
+          {% else %}✕ Отменена{% endif %}
+        </span>
+        <span style="font-size:13px;color:var(--orange2)">Открыть →</span>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="e-icon">🤝</div>
+    <h3>Сделок пока нет</h3>
+    <p>Найдите интересный стартап и начните переговоры</p>
+    <a href="/catalog" class="btn-orange" style="margin-top:20px;display:inline-block">Смотреть каталог</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

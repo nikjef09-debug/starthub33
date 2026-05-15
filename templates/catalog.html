@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Каталог стартапов — StartHub{% endblock %}
+{% block content %}
+<div class="catalog-wrap">
+  <div class="catalog-header">
+    <div class="section-label">Каталог</div>
+    <h1 class="section-title" style="margin-bottom:8px">Стартапы на платформе</h1>
+    <p style="font-size:16px;color:var(--text-muted)">Найдите проект для инвестиций или конкурентов в своей нише</p>
+    <form method="get" action="/catalog" class="catalog-filters">
+      <input class="filter-input" name="q" value="{{ q }}" placeholder="🔍 Поиск по названию...">
+      <select class="filter-input filter-select" name="category">
+        <option value="">Все категории</option>
+        {% for cat in categories %}
+        <option value="{{ cat }}" {% if selected_cat == cat %}selected{% endif %}>{{ cat }}</option>
+        {% endfor %}
+      </select>
+      <select class="filter-input filter-select" name="stage">
+        <option value="">Все стадии</option>
+        {% for st in stages %}
+        <option value="{{ st }}" {% if selected_stage == st %}selected{% endif %}>{{ st }}</option>
+        {% endfor %}
+      </select>
+      <select class="filter-input filter-select" name="sort">
+        <option value="newest" {% if sort == 'newest' %}selected{% endif %}>Новые</option>
+        <option value="price_asc" {% if sort == 'price_asc' %}selected{% endif %}>Цена ↑</option>
+        <option value="price_desc" {% if sort == 'price_desc' %}selected{% endif %}>Цена ↓</option>
+      </select>
+      <button type="submit" class="filter-btn">Найти</button>
+      {% if q or selected_cat or selected_stage %}
+      <a href="/catalog" class="btn-ghost">Сбросить</a>
+      {% endif %}
+    </form>
+  </div>
+
+  {% if startups %}
+  <div style="font-size:13px;color:var(--text-dim);margin-bottom:20px">Найдено: {{ startups|length }} стартапов</div>
+  <div class="startups-grid">
+    {% for startup in startups %}
+    <a href="/startup/{{ startup.slug }}" class="startup-card">
+      <div class="sc-cover" style="background:linear-gradient(135deg,#1a0a03,#3d1a07)">
+        {% if startup.cover_image %}
+          <img src="{{ startup.cover_image }}" class="sc-cover-img" alt="">
+        {% else %}
+          <div class="sc-cover-inner">{{ startup.emoji or '🚀' }}</div>
+        {% endif %}
+        {% if startup.is_featured %}<div class="sc-badge">Featured</div>{% endif %}
+      </div>
+      <div class="sc-body">
+        <div class="sc-cat">{{ startup.category }}</div>
+        <div class="sc-title">{{ startup.title }}</div>
+        <div class="sc-desc">{{ (startup.tagline or startup.description or '')[:110] }}</div>
+        <div class="sc-footer">
+          <div class="sc-invest">{{ startup.price | money }}</div>
+          <div class="sc-stage">{{ startup.stage }}</div>
+        </div>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="e-icon">🔍</div>
+    <h3>Ничего не найдено</h3>
+    <p>Попробуйте изменить фильтры или <a href="/catalog" style="color:var(--orange2)">сбросьте</a> поиск</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

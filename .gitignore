@@ -1,0 +1,15 @@
+.env
+*.db
+__pycache__/
+*.pyc
+*.pyo
+.idea/
+*.spec
+*.exe
+nuitka-crash-report.xml
+static/uploads/avatars/*
+static/uploads/covers/*
+static/uploads/docs/*
+!static/uploads/avatars/.gitkeep
+!static/uploads/covers/.gitkeep
+!static/uploads/docs/.gitkeep

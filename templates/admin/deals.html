@@ -1,0 +1,55 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Сделки — Admin{% endblock %}
+
+{% block admin_content %}
+<div class="page-h">
+  <div class="page-h-left">
+    <h1>Сделки</h1>
+    <p>Все сделки на платформе · {{ deals|length }} записей</p>
+  </div>
+</div>
+
+<div class="table-wrap reveal">
+  <table class="tbl">
+    <thead>
+      <tr>
+        <th>Стартап</th>
+        <th>Покупатель</th>
+        <th>Сумма</th>
+        <th>Статус</th>
+        <th>Создана</th>
+        <th>Закрыта</th>
+        <th style="text-align:right">Действия</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for d in deals %}
+      <tr>
+        <td>
+          <div style="display:flex;align-items:center;gap:11px">
+            <div style="width:32px;height:32px;border-radius:8px;background:var(--em-dim);border:1px solid var(--em-border);display:flex;align-items:center;justify-content:center;font-size:16px">{{ d.startup.emoji or '🚀' }}</div>
+            <div class="tbl-name">{{ d.startup.title }}</div>
+          </div>
+        </td>
+        <td>{{ d.buyer.full_name or d.buyer.username }}</td>
+        <td style="font-weight:600;color:var(--em2)">{{ d.amount | money if d.amount else '—' }}</td>
+        <td>
+          {% if d.status.value == 'pending' %}<span class="badge badge-amber">На рассмотрении</span>
+          {% elif d.status.value == 'active' %}<span class="badge badge-em">Активна</span>
+          {% elif d.status.value == 'documents' %}<span class="badge badge-blue">Документы</span>
+          {% elif d.status.value == 'closed_ok' %}<span class="badge badge-em" style="opacity:.7">Закрыта успешно</span>
+          {% else %}<span class="badge badge-red">Закрыта неудачно</span>{% endif %}
+        </td>
+        <td style="color:var(--text-dim);font-size:12.5px">{{ d.created_at.strftime('%d.%m.%Y') }}</td>
+        <td style="color:var(--text-dim);font-size:12.5px">{% if d.closed_at %}{{ d.closed_at.strftime('%d.%m.%Y') }}{% else %}—{% endif %}</td>
+        <td style="text-align:right">
+          <a href="/deal/{{ d.id }}" class="btn btn-secondary btn-sm">Открыть →</a>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="7"><div class="empty"><div class="empty-icon">🤝</div><h3>Сделок пока нет</h3><p>Первая сделка появится здесь автоматически</p></div></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

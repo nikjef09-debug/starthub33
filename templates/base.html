@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}StartHub{% endblock %}</title>
+<meta name="description" content="StartHub — платформа для продажи и покупки стартапов. Прозрачные сделки, встроенный чат, менеджер.">
+<meta property="og:title" content="StartHub — Платформа для стартапов и инвесторов">
+<meta property="og:description" content="Продайте или купите стартап без лишних посредников. 100+ проектов, 247 инвесторов.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/main.css">
+{% block head %}{% endblock %}
+</head>
+<body>
+
+<div class="blob-container">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+  <div class="blob b3"></div>
+</div>
+
+<div class="wrap">
+
+<!-- NAV -->
+<nav id="main-nav">
+  <a href="/" class="nav-logo">
+    <div class="nav-logo-mark">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polygon points="12,3 2,20 22,20"/></svg>
+    </div>
+    StartHub
+  </a>
+  <ul class="nav-links">
+    <li><a href="/#why">Возможности</a></li>
+    <li><a href="/#how">Как работает</a></li>
+    <li><a href="/catalog">Каталог</a></li>
+    <li><a href="/news">Новости</a></li>
+    <li><a href="/faq">FAQ</a></li>
+  </ul>
+  <div class="nav-right">
+    {% if user %}
+      <a href="/my-deals" class="btn-ghost">Мои сделки</a>
+      <div class="nav-avatar-wrap">
+        <a href="/profile" class="nav-avatar-btn">
+          {% if user.avatar %}
+            <img src="{{ user.avatar }}" class="nav-avatar-img" alt="">
+          {% else %}
+            <div class="nav-avatar-placeholder">{{ (user.full_name or user.username)[0].upper() }}</div>
+          {% endif %}
+          <span>{{ user.full_name or user.username }}</span>
+        </a>
+        {% if user.role in ['admin', 'manager'] %}
+          <a href="{% if user.role == 'admin' %}/admin/dashboard{% else %}/manager/dashboard{% endif %}" class="nav-admin-badge">
+            {% if user.role == 'admin' %}Admin{% else %}Manager{% endif %}
+          </a>
+        {% endif %}
+        <a href="/logout" class="btn-ghost" style="font-size:13px;padding:7px 14px">Выйти</a>
+      </div>
+    {% else %}
+      <a href="/login" class="btn-ghost">Войти</a>
+      <a href="/register" class="btn-em">Начать сейчас</a>
+    {% endif %}
+  </div>
+</nav>
+
+{% block content %}{% endblock %}
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-top">
+    <div class="footer-brand">
+      <h3>
+        <div class="nav-logo-mark" style="width:22px;height:22px;border-radius:5px">
+          <svg viewBox="0 0 24 24" width="11" height="11" xmlns="http://www.w3.org/2000/svg"><polygon points="12,3 2,20 22,20" fill="#fff"/></svg>
+        </div>
+        StartHub
+      </h3>
+      <p>Помогаем основателям продавать стартапы быстрее — прозрачные сделки, реальный чат, мгновенное подключение менеджера.</p>
+      <div class="footer-socials">
+        <div class="social-btn">𝕏</div>
+        <div class="social-btn">P</div>
+        <div class="social-btn">IG</div>
+        <div class="social-btn">in</div>
+      </div>
+    </div>
+    <div class="footer-col">
+      <h4>Меню</h4>
+      <ul>
+        <li><a href="/">Главная</a></li>
+        <li><a href="/catalog">Каталог</a></li>
+        <li><a href="/faq">FAQ</a></li>
+        <li><a href="/about">О нас</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Платформа</h4>
+      <ul>
+        <li><a href="/register?role=author">Для стартапов</a></li>
+        <li><a href="/register?role=buyer">Для инвесторов</a></li>
+        <li><a href="/investors">Инвесторы</a></li>
+        <li><a href="/news">Новости</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Компания</h4>
+      <ul>
+        <li><a href="/about">О нас</a></li>
+        <li><a href="/contact">Контакты</a></li>
+        <li><a href="/terms">Соглашение</a></li>
+        <li><a href="/support">Поддержка</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2026 ООО «Содействие». Все права защищены.</p>
+    <div class="footer-bottom-links">
+      <a href="/terms">Конфиденциальность</a>
+      <a href="/terms">Пользовательское соглашение</a>
+    </div>
+  </div>
+</footer>
+
+</div><!-- .wrap -->
+
+<!-- SUPPORT MODAL — LIQUID GLASS -->
+<div class="modal-overlay" id="footer-ticket-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('footer-ticket-modal')">×</button>
+    <h2>Написать в поддержку</h2>
+    <p class="modal-sub">Опишите проблему — менеджер ответит в течение 24 часов</p>
+
+    {% if user %}
+    <form method="post" action="/support/new">
+      <div class="form-group">
+        <label>Тема</label>
+        <input type="text" name="subject" placeholder="Кратко опишите проблему" required>
+      </div>
+      <div class="form-group">
+        <label>Описание</label>
+        <textarea name="body" rows="4" placeholder="Подробно опишите ситуацию..." required></textarea>
+      </div>
+      <div class="form-group">
+        <label>Приоритет</label>
+        <select name="priority">
+          <option value="low">Низкий — общий вопрос</option>
+          <option value="medium" selected>Средний — есть проблема</option>
+          <option value="high">Высокий — критическая ошибка</option>
+        </select>
+      </div>
+      <button type="submit" class="btn-em-full btn-full" style="padding:13px;font-size:15px">
+        Отправить обращение
+      </button>
+      <p style="text-align:center;margin-top:12px;font-size:13px;color:var(--text-dim)">
+        Или напишите: <a href="mailto:support@starthub.ru" style="color:var(--em2)">support@starthub.ru</a>
+      </p>
+    </form>
+    {% else %}
+    <div style="text-align:center;padding:20px 0">
+      <div style="font-size:40px;margin-bottom:16px">🔒</div>
+      <p style="color:var(--text-muted);margin-bottom:20px">Для отправки тикета нужно войти в аккаунт</p>
+      <div style="display:flex;gap:10px;justify-content:center">
+        <a href="/login" class="btn-ghost">Войти</a>
+        <a href="/register" class="btn-em">Зарегистрироваться</a>
+      </div>
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--card-border)">
+        <a href="mailto:support@starthub.ru" style="color:var(--em2);font-size:14px">support@starthub.ru</a>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<script src="/static/js/main.js"></script>
+
+<script>
+/* ── Nav scroll glass effect ── */
+const nav = document.getElementById('main-nav');
+window.addEventListener('scroll', () => {
+  nav.classList.toggle('scrolled', window.scrollY > 40);
+}, { passive: true });
+
+/* ── Scroll reveal ── */
+const revealEls = document.querySelectorAll('.reveal');
+if (revealEls.length) {
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); }
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+  revealEls.forEach(el => io.observe(el));
+}
+
+/* ── FAQ toggle ── */
+function toggleFaq(el) {
+  const item = el.parentElement;
+  document.querySelectorAll('.faq-item.open').forEach(i => { if (i !== item) i.classList.remove('open'); });
+  item.classList.toggle('open');
+}
+
+/* ── Modal ── */
+function openModal(id) { document.getElementById(id).classList.add('open'); document.body.style.overflow = 'hidden'; }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); document.body.style.overflow = ''; }
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) closeModal(m.id); });
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') document.querySelectorAll('.modal-overlay.open').forEach(m => closeModal(m.id));
+});
+</script>
+
+{% block scripts %}{% endblock %}
+</body>
+</html>

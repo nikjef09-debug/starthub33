@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% block title %}Manager Dashboard — StartHub{% endblock %}
+{% block content %}
+<div class="admin-wrap">
+  {% include "manager/_sidebar.html" %}
+  <div class="admin-content">
+
+    <div class="admin-page-header">
+      <div>
+        <h1>Панель менеджера</h1>
+        <p>Добро пожаловать, <strong>{{ user.full_name or user.username }}</strong></p>
+      </div>
+    </div>
+
+    <!-- KPI -->
+    <div class="stats-grid" style="grid-template-columns:repeat(3,1fr)">
+      <div class="stat-card">
+        <div class="stat-icon" style="background:rgba(96,165,250,0.15)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+        <div class="stat-body">
+          <div class="stat-number" style="color:#60a5fa">{{ deal_count }}</div>
+          <div class="stat-label">Активных сделок</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:rgba(251,191,36,0.15)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        </div>
+        <div class="stat-body">
+          <div class="stat-number" style="color:#fbbf24">{{ ticket_count }}</div>
+          <div class="stat-label">Открытых тикетов</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:rgba(168,85,247,0.15)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        </div>
+        <div class="stat-body">
+          <div class="stat-number" style="color:#c084fc">{{ user.full_name or user.username }}</div>
+          <div class="stat-label">Ваш аккаунт</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="admin-two-col">
+      <!-- Active Deals -->
+      <div class="admin-table-card">
+        <div class="admin-table-header"><h2>Активные сделки</h2><a href="/manager/deals" class="admin-link">Все →</a></div>
+        <table class="admin-table">
+          <thead><tr><th>Стартап</th><th>Покупатель</th><th>Статус</th><th>Открыть</th></tr></thead>
+          <tbody>
+            {% for d in active_deals[:8] %}
+            <tr>
+              <td style="font-size:13px;font-weight:500">{{ d.startup.title[:30] }}</td>
+              <td style="font-size:12px;color:var(--text-muted)">{{ d.buyer.full_name or d.buyer.username }}</td>
+              <td><span class="deal-status {{ d.status.value }}" style="font-size:11px">{{ d.status.value }}</span></td>
+              <td><a href="/deal/{{ d.id }}" style="font-size:12px;color:var(--orange2)">Чат →</a></td>
+            </tr>
+            {% else %}
+            <tr><td colspan="4" style="text-align:center;padding:20px;color:var(--text-dim)">Нет активных сделок</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Tickets -->
+      <div class="admin-table-card">
+        <div class="admin-table-header"><h2>Тикеты поддержки</h2><a href="/manager/tickets" class="admin-link">Все →</a></div>
+        <table class="admin-table">
+          <thead><tr><th>Пользователь</th><th>Тема</th><th>Приоритет</th><th>Ответить</th></tr></thead>
+          <tbody>
+            {% for t in my_tickets[:8] %}
+            <tr>
+              <td style="font-size:12px;color:var(--text-muted)">{{ t.user.full_name or t.user.username }}</td>
+              <td style="font-size:13px">{{ t.subject[:35] }}</td>
+              <td><span style="font-size:11px;padding:2px 6px;border-radius:4px;
+                {% if t.priority.value == 'high' %}background:rgba(239,68,68,0.15);color:#f87171
+                {% elif t.priority.value == 'medium' %}background:rgba(251,191,36,0.15);color:#fbbf24
+                {% else %}background:rgba(255,255,255,0.05);color:var(--text-dim){% endif %}">
+                {{ t.priority.value }}</span></td>
+              <td><button onclick="openModal('mgr-reply-{{ t.id }}')" class="btn-orange" style="font-size:11px;padding:4px 10px">Ответ</button></td>
+            </tr>
+            {% else %}
+            <tr><td colspan="4" style="text-align:center;padding:20px;color:var(--text-dim)">Тикетов нет</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Important notice -->
+    <div style="margin-top:20px;background:rgba(168,85,247,0.05);border:1px solid rgba(168,85,247,0.2);border-radius:12px;padding:20px">
+      <h3 style="font-size:15px;font-weight:600;color:#c084fc;margin-bottom:8px">⚠ Ограничения роли менеджера</h3>
+      <p style="font-size:13px;color:var(--text-muted);line-height:1.6">
+        Менеджер может: просматривать и обрабатывать сделки, отвечать на тикеты поддержки, просматривать стартапы и пользователей.<br>
+        Менеджер не может: менять роли пользователей, банить пользователей, удалять контент, просматривать аналитику и логи, изменять настройки.
+      </p>
+    </div>
+
+  </div>
+</div>
+
+{% for t in my_tickets %}
+{% if t.status.value != 'closed' %}
+<div class="modal-overlay" id="mgr-reply-{{ t.id }}">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('mgr-reply-{{ t.id }}')">×</button>
+    <h2>Ответ на тикет #{{ t.id }}</h2>
+    <p class="modal-sub" style="color:var(--text-muted);margin-bottom:16px">{{ t.subject }}</p>
+    <form method="post" action="/manager/tickets/{{ t.id }}/reply">
+      <div class="form-group"><label>Ваш ответ</label><textarea name="reply" rows="4" required placeholder="Напишите ответ..."></textarea></div>
+      <div class="form-group">
+        <label>Статус</label>
+        <select name="status"><option value="in_progress">В обработке</option><option value="closed">Закрыть</option></select>
+      </div>
+      <button type="submit" class="btn-orange" style="width:100%;padding:12px">Отправить</button>
+    </form>
+  </div>
+</div>
+{% endif %}
+{% endfor %}
+{% endblock %}

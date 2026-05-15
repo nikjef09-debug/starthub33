@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Поддержка — StartHub{% endblock %}
+{% block content %}
+<div class="page-wrap">
+  <div class="page-header">
+    <div><h1>Поддержка</h1><p>Ваши обращения в службу поддержки</p></div>
+    <button onclick="openModal('new-ticket')" class="btn-orange">+ Новый тикет</button>
+  </div>
+
+  {% if tickets %}
+  <div style="display:flex;flex-direction:column;gap:12px">
+    {% for t in tickets %}
+    <div style="background:var(--card-bg);border:1px solid {% if t.status.value == 'open' %}rgba(232,93,38,0.3){% elif t.status.value == 'in_progress' %}rgba(96,165,250,0.3){% else %}var(--card-border){% endif %};border-radius:var(--radius);padding:20px 24px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+        <div>
+          <div style="font-size:15px;font-weight:600;margin-bottom:4px">{{ t.subject }}</div>
+          <div style="font-size:13px;color:var(--text-muted)">{{ t.body[:150] }}{% if t.body|length > 150 %}...{% endif %}</div>
+        </div>
+        <div style="display:flex;gap:8px;flex-shrink:0;margin-left:16px">
+          <span style="font-size:11px;padding:3px 8px;border-radius:6px;
+            {% if t.priority.value == 'high' %}background:rgba(239,68,68,0.15);color:#f87171
+            {% elif t.priority.value == 'medium' %}background:rgba(251,191,36,0.15);color:#fbbf24
+            {% else %}background:rgba(255,255,255,0.05);color:var(--text-dim){% endif %}">
+            {{ t.priority.value }}
+          </span>
+          <span style="font-size:11px;padding:3px 8px;border-radius:6px;
+            {% if t.status.value == 'open' %}background:rgba(232,93,38,0.15);color:var(--orange)
+            {% elif t.status.value == 'in_progress' %}background:rgba(96,165,250,0.15);color:#60a5fa
+            {% else %}background:rgba(34,197,94,0.1);color:#4ade80{% endif %}">
+            {% if t.status.value == 'open' %}Открыт
+            {% elif t.status.value == 'in_progress' %}В обработке
+            {% else %}Закрыт{% endif %}
+          </span>
+        </div>
+      </div>
+      {% if t.manager_reply %}
+      <div style="background:rgba(34,197,94,0.05);border:1px solid rgba(34,197,94,0.2);border-radius:8px;padding:12px 16px;margin-top:12px">
+        <div style="font-size:12px;color:#4ade80;margin-bottom:6px;font-weight:600">✓ Ответ менеджера · {{ t.replied_at.strftime('%d.%m.%Y %H:%M') if t.replied_at else '' }}</div>
+        <div style="font-size:13px;color:var(--text-muted)">{{ t.manager_reply }}</div>
+      </div>
+      {% endif %}
+      <div style="margin-top:10px;font-size:12px;color:var(--text-dim)">
+        Создан: {{ t.created_at.strftime('%d.%m.%Y %H:%M') }}
+        {% if t.closed_at %} · Закрыт: {{ t.closed_at.strftime('%d.%m.%Y') }}{% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="e-icon">💬</div>
+    <h3>Обращений нет</h3>
+    <p>Создайте тикет если у вас есть вопросы или проблемы</p>
+    <button onclick="openModal('new-ticket')" class="btn-orange" style="margin-top:20px;display:inline-block">Создать тикет</button>
+  </div>
+  {% endif %}
+</div>
+
+<!-- New ticket modal -->
+<div class="modal-overlay" id="new-ticket">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('new-ticket')">×</button>
+    <h2>Новое обращение</h2>
+    <p class="modal-sub" style="color:var(--text-muted);margin-bottom:20px">Опишите вашу проблему — менеджер ответит в течение 24 часов</p>
+    <form method="post" action="/support/new">
+      <div class="form-group">
+        <label>Тема обращения *</label>
+        <input type="text" name="subject" placeholder="Кратко опишите проблему" required>
+      </div>
+      <div class="form-group">
+        <label>Подробное описание *</label>
+        <textarea name="body" rows="5" placeholder="Опишите проблему подробно..." required></textarea>
+      </div>
+      <div class="form-group">
+        <label>Приоритет</label>
+        <select name="priority">
+          <option value="low">Низкий — общий вопрос</option>
+          <option value="medium" selected>Средний — есть проблема</option>
+          <option value="high">Высокий — критическая ошибка</option>
+        </select>
+      </div>
+      <button type="submit" class="btn-orange" style="width:100%;padding:12px">Отправить</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

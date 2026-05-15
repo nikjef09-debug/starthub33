@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Инвесторы — StartHub{% endblock %}
+{% block content %}
+<div class="page-wrap">
+  <div class="page-header" style="flex-direction:column;align-items:flex-start;margin-bottom:48px">
+    <div class="section-label">Сообщество</div>
+    <h1 class="section-title" style="margin-bottom:8px">Инвесторы платформы</h1>
+    <p style="color:var(--text-muted);font-size:16px">{{ investors|length }} активных инвесторов ищут перспективные проекты</p>
+  </div>
+  {% if investors %}
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px">
+    {% for inv in investors %}
+    <div style="background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius);padding:24px;transition:all .25s">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px">
+        {% if inv.avatar %}
+          <img src="{{ inv.avatar }}" style="width:52px;height:52px;border-radius:50%;object-fit:cover;border:2px solid var(--orange)">
+        {% else %}
+          <div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--orange),var(--orange3));display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;flex-shrink:0">
+            {{ (inv.full_name or inv.username)[0].upper() }}
+          </div>
+        {% endif %}
+        <div>
+          <div style="font-size:15px;font-weight:600">{{ inv.full_name or inv.username }}</div>
+          <div style="font-size:12px;color:var(--text-dim)">@{{ inv.username }}</div>
+          {% if inv.location %}<div style="font-size:12px;color:var(--text-dim)">📍 {{ inv.location }}</div>{% endif %}
+        </div>
+      </div>
+      {% if inv.bio %}<p style="font-size:13px;color:var(--text-muted);line-height:1.5;margin-bottom:12px">{{ inv.bio[:120] }}</p>{% endif %}
+      <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--text-dim);padding-top:12px;border-top:1px solid var(--card-border)">
+        <span>На платформе с {{ inv.created_at.strftime('%Y') }}</span>
+        {% if inv.is_verified %}<span style="color:#4ade80">✓ Верифицирован</span>{% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="e-icon">💼</div>
+    <h3>Инвесторов пока нет</h3>
+    <p>Зарегистрируйтесь как инвестор первым</p>
+    <a href="/register?role=buyer" class="btn-orange" style="margin-top:20px;display:inline-block">Стать инвестором</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

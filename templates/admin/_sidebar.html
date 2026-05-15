@@ -1,0 +1,61 @@
+<div class="admin-sidebar">
+  <div class="admin-brand">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2.5"><polygon points="12 2 2 19 22 19"/></svg>
+    <span>Admin Panel</span>
+  </div>
+
+  <div class="admin-nav-section">Основное</div>
+  <a href="/admin/dashboard" class="admin-nav-item {% if request.url.path == '/admin/dashboard' %}active{% endif %}">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+    Дашборд
+  </a>
+  <a href="/admin/analytics" class="admin-nav-item {% if '/analytics' in request.url.path %}active{% endif %}">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+    Аналитика
+  </a>
+
+  <div class="admin-nav-section">Пользователи</div>
+  <a href="/admin/users" class="admin-nav-item {% if '/admin/users' in request.url.path %}active{% endif %}">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+    Пользователи
+  </a>
+
+  <div class="admin-nav-section">Контент</div>
+  <a href="/admin/startups" class="admin-nav-item {% if '/admin/startups' in request.url.path %}active{% endif %}">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 19 22 19"/></svg>
+    Стартапы
+  </a>
+  <a href="/admin/deals" class="admin-nav-item {% if '/admin/deals' in request.url.path %}active{% endif %}">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    Сделки
+  </a>
+  <a href="/admin/news" class="admin-nav-item {% if '/admin/news' in request.url.path %}active{% endif %}">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/></svg>
+    Новости / Блог
+  </a>
+
+  <div class="admin-nav-section">Поддержка</div>
+  <a href="/admin/tickets" class="admin-nav-item {% if '/admin/tickets' in request.url.path %}active{% endif %}">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+    Тикеты
+  </a>
+  <a href="/admin/reviews" class="admin-nav-item {% if '/admin/reviews' in request.url.path %}active{% endif %}">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+    Отзывы
+  </a>
+
+  <div class="admin-nav-section">Система</div>
+  <a href="/admin/logs" class="admin-nav-item {% if '/admin/logs' in request.url.path %}active{% endif %}">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
+    Логи
+  </a>
+  <a href="/admin/settings" class="admin-nav-item {% if '/admin/settings' in request.url.path %}active{% endif %}">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    Настройки
+  </a>
+
+  <div class="admin-sidebar-footer">
+    <a href="/profile" class="admin-nav-item">👤 Профиль</a>
+    <a href="/logout" class="admin-nav-item" style="color:#f87171">🚪 Выйти</a>
+  </div>
+</div>
