@@ -1,6 +1,27 @@
 {% extends "admin/base_admin.html" %}
 {% block title %}Стартапы — Admin{% endblock %}
 
+{% block admin_head %}
+.status-select{
+  appearance:none;-webkit-appearance:none;
+  background:var(--surface);border:1px solid var(--card-border);
+  color:var(--text);padding:5px 28px 5px 10px;border-radius:8px;
+  font-size:12px;font-family:inherit;cursor:pointer;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='rgba(16,185,129,0.7)' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 8px center;
+  transition:border-color .2s;
+}
+.status-select:focus{outline:none;border-color:var(--em-border)}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(4px);z-index:1000;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.open{display:flex}
+.modal-box{background:#0b1912;border:1px solid rgba(16,185,129,0.25);border-radius:20px;padding:0;max-width:560px;width:100%;box-shadow:0 40px 120px rgba(0,0,0,.8)}
+.modal-head{background:rgba(16,185,129,0.08);border-bottom:1px solid rgba(16,185,129,0.15);padding:20px 28px;display:flex;justify-content:space-between;align-items:center;border-radius:20px 20px 0 0}
+.modal-head h2{margin:0;font-size:17px;font-weight:700}
+.modal-body{padding:24px 28px}
+.modal-close-btn{width:30px;height:30px;border-radius:8px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);cursor:pointer;color:var(--text-muted);display:flex;align-items:center;justify-content:center;font-size:17px}
+.modal-close-btn:hover{background:rgba(239,68,68,.1);color:#f87171;border-color:rgba(239,68,68,.3)}
+{% endblock %}
+
 {% block admin_content %}
 <div class="page-h">
   <div class="page-h-left">
@@ -10,6 +31,14 @@
 </div>
 
 <div class="table-wrap reveal">
+  <div class="tbl-toolbar">
+    <h3>Все стартапы</h3>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      {% for st, label, cls in [('active','Активные','badge-em'),('draft','Черновики','badge-grey'),('sold','Проданные','badge-purple'),('archived','Архив','badge-red')] %}
+      <span class="badge {{ cls }}">{{ label }}: {{ startups|selectattr('status.value','equalto',st)|list|length }}</span>
+      {% endfor %}
+    </div>
+  </div>
   <table class="tbl">
     <thead>
       <tr>
@@ -17,8 +46,8 @@
         <th>Автор</th>
         <th>Категория</th>
         <th>Цена</th>
-        <th>Просм.</th>
         <th>Статус</th>
+        <th>Просм.</th>
         <th style="text-align:right">Действия</th>
       </tr>
     </thead>
@@ -27,12 +56,20 @@
       <tr>
         <td>
           <div style="display:flex;align-items:center;gap:11px">
-            <div style="width:36px;height:36px;border-radius:9px;background:var(--em-dim);border:1px solid var(--em-border);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">{{ s.emoji or '🚀' }}</div>
+            <div style="width:38px;height:38px;border-radius:10px;overflow:hidden;flex-shrink:0;
+                        background:radial-gradient(ellipse at 60% 35%,rgba(16,185,129,0.2),transparent 70%),linear-gradient(135deg,#071a11,#064e3b);
+                        display:flex;align-items:center;justify-content:center;font-size:18px;border:1px solid rgba(16,185,129,0.15)">
+              {% if s.cover_image %}
+                <img src="{{ s.cover_image }}" style="width:100%;height:100%;object-fit:cover">
+              {% else %}
+                <span style="filter:drop-shadow(0 2px 6px rgba(16,185,129,0.3))">{{ s.emoji or '🚀' }}</span>
+              {% endif %}
+            </div>
             <div>
-              <div class="tbl-name">
-                {% if s.is_featured %}<span title="Featured" style="color:var(--em);margin-right:4px">★</span>{% endif %}
-                {% if s.is_verified %}<span title="Verified" style="color:var(--em2);margin-right:4px">✓</span>{% endif %}
-                {{ s.title }}
+              <div class="tbl-name" style="display:flex;align-items:center;gap:5px">
+                {% if s.is_featured %}<span title="Featured" style="color:var(--em)">★</span>{% endif %}
+                {% if s.is_verified %}<span title="Верифицирован" style="color:var(--em2)">✓</span>{% endif %}
+                {{ s.title[:35] }}
               </div>
               <div style="font-size:11px;color:var(--text-dim);margin-top:2px">{{ s.stage or '—' }}</div>
             </div>
@@ -40,36 +77,96 @@
         </td>
         <td>{{ s.author.full_name or s.author.username if s.author else '—' }}</td>
         <td><span class="badge badge-grey">{{ s.category or '—' }}</span></td>
-        <td style="font-weight:600;color:var(--em2)">{{ s.price | money }}</td>
-        <td>{{ s.views_count or 0 }}</td>
+        <td style="font-weight:600;color:var(--em2)">{{ s.price | money if s.price else '—' }}</td>
         <td>
-          {% if s.status.value == 'active' %}<span class="badge badge-em">Активен</span>
-          {% elif s.status.value == 'draft' %}<span class="badge badge-grey">Черновик</span>
-          {% elif s.status.value == 'sold' %}<span class="badge badge-purple">Продан</span>
-          {% else %}<span class="badge badge-red">Архив</span>{% endif %}
+          <!-- Быстрая смена статуса -->
+          <form method="post" action="/admin/startups/{{ s.id }}/status" style="margin:0">
+            <select name="status" class="status-select" onchange="this.form.submit()">
+              <option value="active"   {% if s.status.value == 'active'   %}selected{% endif %}>🟢 Активен</option>
+              <option value="draft"    {% if s.status.value == 'draft'    %}selected{% endif %}>⚪ Черновик</option>
+              <option value="sold"     {% if s.status.value == 'sold'     %}selected{% endif %}>🟣 Продан</option>
+              <option value="archived" {% if s.status.value == 'archived' %}selected{% endif %}>🔴 Архив</option>
+            </select>
+          </form>
         </td>
+        <td style="color:var(--text-dim)">{{ s.views_count or 0 }}</td>
         <td style="text-align:right">
           <div class="row-actions" style="justify-content:flex-end">
-            <a href="/startup/{{ s.slug }}" target="_blank" class="row-action" title="Открыть">
+            <!-- Открыть -->
+            <a href="/startup/{{ s.slug }}" target="_blank" class="row-action" title="Открыть на сайте">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
             </a>
-            <form method="post" action="/admin/startups/{{ s.id }}/feature" style="display:inline">
-              <button class="row-action" title="{% if s.is_featured %}Снять с featured{% else %}Сделать featured{% endif %}" style="{% if s.is_featured %}color:var(--em);border-color:var(--em-border){% endif %}">
-                <svg viewBox="0 0 24 24" fill="{% if s.is_featured %}currentColor{% else %}none{% endif %}" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            <!-- Редактировать -->
+            <a href="/my-startups/{{ s.id }}/edit" class="row-action" title="Редактировать">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </a>
+            <!-- Featured -->
+            <form method="post" action="/admin/startups/{{ s.id }}/feature" style="display:inline;margin:0">
+              <button class="row-action" title="{% if s.is_featured %}Убрать из Featured{% else %}В Featured{% endif %}"
+                      style="{% if s.is_featured %}color:var(--em);border-color:var(--em-border){% endif %}">
+                <svg viewBox="0 0 24 24" fill="{% if s.is_featured %}currentColor{% else %}none{% endif %}" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
               </button>
             </form>
-            <form method="post" action="/admin/startups/{{ s.id }}/verify" style="display:inline">
-              <button class="row-action" title="{% if s.is_verified %}Снять верификацию{% else %}Верифицировать{% endif %}" style="{% if s.is_verified %}color:var(--em2);border-color:var(--em-border){% endif %}">
+            <!-- Верифицировать -->
+            <form method="post" action="/admin/startups/{{ s.id }}/verify" style="display:inline;margin:0">
+              <button class="row-action" title="{% if s.is_verified %}Снять верификацию{% else %}Верифицировать{% endif %}"
+                      style="{% if s.is_verified %}color:var(--em2);border-color:var(--em-border){% endif %}">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
               </button>
             </form>
+            <!-- Удалить -->
+            <button class="row-action danger" title="Удалить стартап"
+                    onclick="openDeleteModal({{ s.id }}, '{{ s.title|e }}')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+            </button>
           </div>
         </td>
       </tr>
       {% else %}
-      <tr><td colspan="7"><div class="empty"><div class="empty-icon">🚀</div><h3>Стартапов нет</h3><p>Появятся после первой публикации</p></div></td></tr>
+      <tr><td colspan="7">
+        <div class="empty"><div class="empty-icon">🚀</div><h3>Стартапов нет</h3><p>Появятся после первой публикации</p></div>
+      </td></tr>
       {% endfor %}
     </tbody>
   </table>
 </div>
+
+<!-- Модалка удаления -->
+<div id="delete-modal" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h2>⚠️ Удалить стартап</h2>
+      <button class="modal-close-btn" onclick="closeDeleteModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:14px;color:var(--text-muted);margin-bottom:20px;line-height:1.6">
+        Вы собираетесь удалить стартап <strong id="delete-title" style="color:var(--text)"></strong>.<br>
+        Это действие необратимо — все связанные данные (сделки, документы, сообщения) будут удалены.
+      </p>
+      <form id="delete-form" method="post" style="display:flex;gap:10px;justify-content:flex-end">
+        <button type="button" onclick="closeDeleteModal()" class="btn btn-secondary">Отмена</button>
+        <button type="submit" class="btn btn-danger" style="padding:9px 20px">Удалить</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block admin_scripts %}
+function openDeleteModal(id, title) {
+  document.getElementById('delete-title').textContent = '"' + title + '"';
+  document.getElementById('delete-form').action = '/admin/startups/' + id + '/delete';
+  var m = document.getElementById('delete-modal');
+  m.style.display = 'flex';
+  m.classList.add('open');
+}
+function closeDeleteModal() {
+  var m = document.getElementById('delete-modal');
+  m.style.display = 'none';
+  m.classList.remove('open');
+}
+document.addEventListener('click', function(e) {
+  if (e.target === document.getElementById('delete-modal')) closeDeleteModal();
+});
 {% endblock %}

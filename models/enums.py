@@ -2,10 +2,11 @@ import enum
 
 
 class UserRole(str, enum.Enum):
-    author  = "author"
-    buyer   = "buyer"
-    manager = "manager"
-    admin   = "admin"
+    author    = "author"
+    buyer     = "buyer"
+    manager   = "manager"
+    admin     = "admin"
+    developer = "developer"
 
 
 class StartupStatus(str, enum.Enum):
@@ -30,11 +31,14 @@ class MessageKind(str, enum.Enum):
 
 
 class NotifType(str, enum.Enum):
-    deal_new   = "deal_new"
+    deal_new    = "deal_new"
     deal_status = "deal_status"
-    message    = "message"
-    system     = "system"
-    review     = "review"
+    message     = "message"
+    system      = "system"
+    review      = "review"
+    ticket      = "ticket"
+    payment     = "payment"
+    document    = "document"
 
 
 class ReviewTarget(str, enum.Enum):
@@ -60,6 +64,18 @@ class WithdrawStatus(str, enum.Enum):
     rejected = "rejected"
 
 
+class PaymentMethod(str, enum.Enum):
+    online = "online"
+    qr     = "qr"
+    cash   = "cash"
+
+
+class PaymentStatus(str, enum.Enum):
+    pending   = "pending"
+    confirmed = "confirmed"
+    rejected  = "rejected"
+
+
 # Human-readable Russian labels
 DEAL_STATUS_LABELS = {
     DealStatus.pending:     "На рассмотрении",
@@ -74,4 +90,10 @@ STARTUP_STATUS_LABELS = {
     StartupStatus.active:   "Активен",
     StartupStatus.sold:     "Продан",
     StartupStatus.archived: "В архиве",
+}
+
+PAYMENT_METHOD_LABELS = {
+    PaymentMethod.online: "Онлайн",
+    PaymentMethod.qr:     "По QR-коду",
+    PaymentMethod.cash:   "Наличными",
 }

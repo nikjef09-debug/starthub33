@@ -1,0 +1,222 @@
+﻿{% extends "base.html" %}
+{% block title %}Оплата сделки #{{ deal.id }} — StartHub{% endblock %}
+
+{% block head %}
+<style>
+.pay-page{max-width:900px;margin:40px auto;padding:0 20px;display:grid;grid-template-columns:1fr 360px;gap:32px;align-items:start}
+.pay-card{background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:20px;padding:32px}
+.pay-tabs{display:flex;gap:8px;margin-bottom:28px}
+.pay-tab-btn{flex:1;padding:12px;border-radius:12px;border:1px solid var(--card-border);background:rgba(255,255,255,0.03);color:var(--text-muted);font-size:13px;cursor:pointer;transition:all .2s;font-family:inherit}
+.pay-tab-btn.active{background:rgba(74,197,120,0.15);border-color:#22c55e;color:#4ade80;font-weight:600}
+.pay-input{width:100%;padding:13px 16px;border-radius:12px;border:1px solid var(--card-border);background:rgba(255,255,255,0.05);color:var(--text);font-size:15px;font-family:inherit;transition:border .2s;box-sizing:border-box}
+.pay-input:focus{outline:none;border-color:rgba(16,185,129,0.5);background:rgba(16,185,129,0.05)}
+.pay-label{font-size:11px;color:var(--text-muted);margin-bottom:6px;display:block;text-transform:uppercase;letter-spacing:0.5px}
+.pay-group{margin-bottom:18px}
+.card-visual{background:linear-gradient(135deg,#1a3a2a 0%,#0d1f17 100%);border-radius:18px;padding:24px;margin-bottom:24px;position:relative;overflow:hidden;min-height:150px}
+.card-visual::before{content:'';position:absolute;top:-40px;right:-40px;width:180px;height:180px;border-radius:50%;background:rgba(74,197,120,0.08)}
+.card-visual::after{content:'';position:absolute;bottom:-30px;left:-20px;width:130px;height:130px;border-radius:50%;background:rgba(16,185,129,0.06)}
+.card-num-preview{font-family:monospace;font-size:19px;color:#fff;letter-spacing:4px;margin:14px 0;position:relative;z-index:1}
+.card-meta{display:flex;justify-content:space-between;font-size:12px;color:rgba(255,255,255,0.55);position:relative;z-index:1}
+.pay-submit{width:100%;padding:15px;border-radius:14px;background:linear-gradient(135deg,#22c55e,#16a34a);border:none;color:#fff;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;transition:opacity .2s;margin-top:4px}
+.pay-submit:hover{opacity:.9}
+.deal-summary{background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:20px;padding:28px;position:sticky;top:20px}
+.summary-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:14px}
+.summary-row:last-child{border:none;font-size:16px;font-weight:700;padding-top:14px}
+.summary-row span:first-child{color:var(--text-muted)}
+.qr-box{text-align:center;padding:16px 0}
+.alert-warn{background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.25);color:#fbbf24;padding:14px 18px;border-radius:12px;font-size:13px;margin-bottom:18px}
+.pay-history-item{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:rgba(255,255,255,0.03);border-radius:10px;margin-bottom:6px;font-size:13px}
+.pill{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.pill-confirmed{background:rgba(74,222,128,0.15);color:#4ade80}
+.pill-pending{background:rgba(251,191,36,0.15);color:#fbbf24}
+@media(max-width:768px){.pay-page{grid-template-columns:1fr}.deal-summary{position:static}}
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="max-width:900px;margin:32px auto;padding:0 20px">
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:28px">
+    <a href="/deal/{{ deal.id }}" style="color:var(--text-muted);font-size:13px;text-decoration:none;display:flex;align-items:center;gap:6px">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      Назад к сделке #{{ deal.id }}
+    </a>
+  </div>
+</div>
+
+<div class="pay-page">
+  <div>
+    <div class="pay-card">
+      <h1 style="font-size:22px;font-weight:700;margin-bottom:6px">Оплата сделки</h1>
+      <p style="font-size:14px;color:var(--text-muted);margin-bottom:28px">{{ deal.startup.title }}</p>
+
+      <div class="pay-tabs">
+        <button type="button" class="pay-tab-btn active" onclick="switchTab('card',this)">💳 Карта</button>
+        <button type="button" class="pay-tab-btn" onclick="switchTab('qr',this)">📱 QR / СБП</button>
+        <button type="button" class="pay-tab-btn" onclick="switchTab('cash',this)">💵 Наличные</button>
+      </div>
+
+      <form method="post" action="/deal/{{ deal.id }}/payment">
+        <input type="hidden" name="method" id="methodInput" value="online">
+
+        <div class="pay-group">
+          <label class="pay-label">Сумма (₽)</label>
+          <input type="number" name="amount" class="pay-input" step="0.01" min="1"
+                 value="{{ deal.amount or '' }}" placeholder="0.00"
+                 style="font-size:24px;font-weight:700" required oninput="updateAmount(this.value)">
+        </div>
+
+        <!-- CARD -->
+        <div id="tab-card">
+          <div class="card-visual">
+            <div style="position:relative;z-index:1">
+              <div id="cardBrand" style="font-size:12px;color:rgba(255,255,255,0.55);letter-spacing:1px">💳 КАРТА</div>
+              <div class="card-num-preview" id="cardPreview">•••• •••• •••• ••••</div>
+              <div class="card-meta">
+                <div><div style="font-size:10px;text-transform:uppercase;margin-bottom:2px">Владелец</div><div id="namePreview" style="color:#fff;letter-spacing:1px">ИМЯ ВЛАДЕЛЬЦА</div></div>
+                <div style="text-align:right"><div style="font-size:10px;text-transform:uppercase;margin-bottom:2px">Срок</div><div id="expPreview" style="color:#fff">MM/YY</div></div>
+              </div>
+            </div>
+          </div>
+          <div class="pay-group">
+            <label class="pay-label">Номер карты</label>
+            <input type="text" id="cardNum" class="pay-input" placeholder="0000 0000 0000 0000" maxlength="19" autocomplete="cc-number" style="font-size:17px;letter-spacing:2px">
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+            <div class="pay-group"><label class="pay-label">Срок</label><input type="text" id="cardExp" class="pay-input" placeholder="MM/YY" maxlength="5" autocomplete="cc-exp" style="font-size:16px"></div>
+            <div class="pay-group"><label class="pay-label">CVV</label><input type="text" id="cardCvv" class="pay-input" placeholder="•••" maxlength="3" autocomplete="cc-csc" style="font-size:16px"></div>
+          </div>
+          <div class="pay-group">
+            <label class="pay-label">Имя на карте</label>
+            <input type="text" id="cardName" class="pay-input" placeholder="IVAN IVANOV" autocomplete="cc-name" style="text-transform:uppercase">
+          </div>
+        </div>
+
+        <!-- QR -->
+        <div id="tab-qr" style="display:none">
+          <div class="qr-box">
+            <div style="background:#fff;border-radius:16px;display:inline-flex;align-items:center;justify-content:center;padding:12px;margin-bottom:16px">
+              <canvas id="qrCanvas"></canvas>
+            </div>
+            <p style="font-size:14px;color:var(--text-muted);margin-bottom:6px">Отсканируйте QR-код приложением банка</p>
+            <p style="font-size:12px;color:var(--text-dim)">Поддерживает СБП, Сбербанк, Тинькофф и другие банки</p>
+            <p id="qrAmountLabel" style="font-size:13px;color:#4ade80;margin-top:8px;font-weight:600"></p>
+            <p style="font-size:12px;color:var(--text-dim);margin-top:6px">После перевода нажмите «Подтвердить» — менеджер проверит поступление</p>
+          </div>
+        </div>
+
+        <!-- CASH -->
+        <div id="tab-cash" style="display:none">
+          <div class="alert-warn">⚠️ <strong>Наличная оплата</strong> — требует подтверждения менеджера</div>
+          <div style="background:rgba(255,255,255,0.03);border-radius:12px;padding:18px;margin-bottom:18px">
+            <p style="font-size:13px;font-weight:600;margin-bottom:12px">Как оплатить наличными:</p>
+            <ol style="font-size:13px;color:var(--text-muted);line-height:2.1;padding-left:20px;margin:0">
+              <li>Напишите менеджеру в чате сделки и согласуйте встречу</li>
+              <li>Встретьтесь в оговорённом месте и передайте сумму</li>
+              <li>Попросите расписку или подтверждение от менеджера</li>
+              <li>Нажмите «Подтвердить оплату» — менеджер зафиксирует платёж</li>
+            </ol>
+            <div style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.05);font-size:12px;color:var(--text-dim)">
+              📍 Офис: г. Москва, ул. Тверская, д. 1 · Пн–Пт 9:00–18:00
+            </div>
+          </div>
+          <div class="pay-group">
+            <label class="pay-label">Примечание для менеджера</label>
+            <textarea name="note" class="pay-input" rows="3" placeholder="Укажите удобное время и место встречи..." style="resize:vertical"></textarea>
+          </div>
+        </div>
+
+        <button type="submit" class="pay-submit">🔒 Подтвердить оплату</button>
+        <p style="font-size:11px;color:var(--text-dim);text-align:center;margin-top:10px">Защищённое соединение · SSL</p>
+      </form>
+    </div>
+
+    {% if deal.payments %}
+    <div class="pay-card" style="margin-top:20px">
+      <h3 style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:14px">История платежей</h3>
+      {% for p in deal.payments %}
+      <div class="pay-history-item">
+        <span style="color:var(--text-muted)">{{ p.method.value }}</span>
+        <span style="font-weight:700;color:var(--em2)">{{ p.amount | money }}</span>
+        <span class="pill {% if p.status.value == 'confirmed' %}pill-confirmed{% else %}pill-pending{% endif %}">{{ p.status.value }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Summary -->
+  <div class="deal-summary">
+    <h3 style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:18px">Сводка</h3>
+    <div class="summary-row"><span>Стартап</span><span style="font-weight:600;text-align:right">{{ deal.startup.title }}</span></div>
+    <div class="summary-row"><span>Сделка</span><span style="color:var(--text-muted)">#{{ deal.id }}</span></div>
+    <div class="summary-row"><span>Продавец</span><span>{{ deal.startup.author.full_name or deal.startup.author.username }}</span></div>
+    <div class="summary-row"><span>Покупатель</span><span>{{ deal.buyer.full_name or deal.buyer.username }}</span></div>
+    <div class="summary-row"><span>Статус</span><span class="deal-status {{ deal.status.value }}" style="font-size:11px">{{ deal.status.value }}</span></div>
+    {% if deal.amount %}<div class="summary-row"><span>Предложение</span><span style="color:var(--em2)">{{ deal.amount | money }}</span></div>{% endif %}
+    <div class="summary-row"><span>К оплате</span><span id="summaryAmount" style="color:#4ade80;font-size:18px">{{ deal.amount | money if deal.amount else '—' }}</span></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+<script>
+var _dealTitle = {{ deal.startup.title | tojson }};
+var _dealId = {{ deal.id }};
+
+function generateQR(amount) {
+  var canvas = document.getElementById('qrCanvas');
+  if (!canvas || typeof QRCode === 'undefined') return;
+  var kopecks = Math.round((amount || 0) * 100);
+  var qrData = 'ST00012|Name=StartHub|PersonalAcc=40702810123400000001|BankName=ПАО Сбербанк|BIC=044525225|Sum=' + kopecks + '|Purpose=Оплата сделки #' + _dealId + ' ' + _dealTitle;
+  QRCode.toCanvas(canvas, qrData, {width:180, margin:1, color:{dark:'#000000',light:'#ffffff'}}, function(){});
+  var lbl = document.getElementById('qrAmountLabel');
+  if (lbl) lbl.textContent = amount > 0 ? 'Сумма: ₽ ' + amount.toLocaleString('ru-RU') : '';
+}
+
+function switchTab(tab, btn) {
+  ['card','qr','cash'].forEach(t => { const el=document.getElementById('tab-'+t); if(el) el.style.display='none'; });
+  document.getElementById('tab-'+tab).style.display='block';
+  document.getElementById('methodInput').value = tab==='card'?'online':(tab==='qr'?'qr':'cash');
+  document.querySelectorAll('.pay-tab-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  if (tab === 'qr') {
+    var amt = parseFloat(document.querySelector('[name=amount]').value) || 0;
+    generateQR(amt);
+  }
+}
+
+function updateAmount(val) {
+  const el=document.getElementById('summaryAmount');
+  if(!el) return;
+  const n=parseFloat(val);
+  el.textContent=isNaN(n)?'—':'₽ '+n.toLocaleString('ru-RU');
+  var active = document.querySelector('.pay-tab-btn.active');
+  if (active && active.textContent.includes('QR')) generateQR(n);
+}
+const cardNum=document.getElementById('cardNum');
+const cardExp=document.getElementById('cardExp');
+const cardName=document.getElementById('cardName');
+cardNum&&cardNum.addEventListener('input',()=>{
+  let v=cardNum.value.replace(/\D/g,'').slice(0,16);
+  cardNum.value=v.replace(/(.{4})/g,'$1 ').trim();
+  const p=document.getElementById('cardPreview');
+  const b=document.getElementById('cardBrand');
+  if(p){const d=v.padEnd(16,'•');p.textContent=d.slice(0,4)+' '+d.slice(4,8)+' '+d.slice(8,12)+' '+d.slice(12,16);}
+  if(b){b.textContent=v.startsWith('4')?'💳 VISA':/^(5[1-5]|2[2-7])/.test(v)?'💳 MASTERCARD':/^220[0-4]/.test(v)?'💳 МИР':'💳 КАРТА';}
+});
+cardExp&&cardExp.addEventListener('input',()=>{
+  let v=cardExp.value.replace(/\D/g,'').slice(0,4);
+  if(v.length>=3) v=v.slice(0,2)+'/'+v.slice(2);
+  cardExp.value=v;
+  const el=document.getElementById('expPreview');
+  if(el) el.textContent=cardExp.value||'MM/YY';
+});
+document.getElementById('cardCvv')&&document.getElementById('cardCvv').addEventListener('input',function(){this.value=this.value.replace(/\D/g,'').slice(0,3);});
+cardName&&cardName.addEventListener('input',()=>{
+  cardName.value=cardName.value.toUpperCase();
+  const el=document.getElementById('namePreview');
+  if(el) el.textContent=cardName.value||'ИМЯ ВЛАДЕЛЬЦА';
+});
+</script>
+{% endblock %}

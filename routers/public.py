@@ -1,7 +1,7 @@
 from datetime import datetime, timezone, timedelta
 
-from fastapi import APIRouter, Depends, Form, Request
-from fastapi.responses import HTMLResponse
+from fastapi import APIRouter, Depends, Form, Query, Request
+from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy import func, select, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -190,24 +190,77 @@ async def startup_detail(slug: str, request: Request, db: AsyncSession = Depends
 
 # ── News / Blog ────────────────────────────────────────────────────────────────
 
+_NEWS_PAGE_SIZE = 10
+
+
 @router.get("/news", response_class=HTMLResponse)
-async def news_list(request: Request, db: AsyncSession = Depends(get_db)):
+async def news_list(request: Request, db: AsyncSession = Depends(get_db),
+                    page: int = Query(1, ge=1)):
     user = await get_current_user(request, db)
+    base_q = select(NewsPost).where(NewsPost.is_published == True, NewsPost.is_blog == False)
+    total = (await db.execute(
+        select(func.count()).select_from(NewsPost)
+        .where(NewsPost.is_published == True, NewsPost.is_blog == False)
+    )).scalar() or 0
     posts = (await db.execute(
-        select(NewsPost).where(NewsPost.is_published == True, NewsPost.is_blog == False)
-        .order_by(NewsPost.created_at.desc())
+        base_q.order_by(NewsPost.created_at.desc())
+        .limit(_NEWS_PAGE_SIZE).offset((page - 1) * _NEWS_PAGE_SIZE)
     )).scalars().all()
-    return render(request, "news.html", {"user": user, "posts": posts})
+    total_pages = max(1, (total + _NEWS_PAGE_SIZE - 1) // _NEWS_PAGE_SIZE)
+    return render(request, "news.html", {
+        "user": user, "posts": posts,
+        "page": page, "total_pages": total_pages,
+    })
 
 
 @router.get("/blog", response_class=HTMLResponse)
-async def blog_list(request: Request, db: AsyncSession = Depends(get_db)):
+async def blog_list(request: Request, db: AsyncSession = Depends(get_db),
+                    page: int = Query(1, ge=1)):
     user = await get_current_user(request, db)
+    total = (await db.execute(
+        select(func.count()).select_from(NewsPost)
+        .where(NewsPost.is_published == True, NewsPost.is_blog == True)
+    )).scalar() or 0
     posts = (await db.execute(
         select(NewsPost).where(NewsPost.is_published == True, NewsPost.is_blog == True)
         .order_by(NewsPost.created_at.desc())
+        .limit(_NEWS_PAGE_SIZE).offset((page - 1) * _NEWS_PAGE_SIZE)
     )).scalars().all()
-    return render(request, "blog.html", {"user": user, "posts": posts})
+    total_pages = max(1, (total + _NEWS_PAGE_SIZE - 1) // _NEWS_PAGE_SIZE)
+    return render(request, "blog.html", {
+        "user": user, "posts": posts,
+        "page": page, "total_pages": total_pages,
+    })
+
+
+@router.get("/news/{slug}", response_class=HTMLResponse)
+async def news_detail(slug: str, request: Request, db: AsyncSession = Depends(get_db)):
+    user = await get_current_user(request, db)
+    post = (await db.execute(
+        select(NewsPost)
+        .options(selectinload(NewsPost.author))
+        .where(NewsPost.slug == slug, NewsPost.is_published == True, NewsPost.is_blog == False)
+    )).scalar_one_or_none()
+    if not post:
+        return RedirectResponse("/news", 302)
+    post.views_count = (post.views_count or 0) + 1
+    await db.commit()
+    return render(request, "news_detail.html", {"user": user, "post": post})
+
+
+@router.get("/blog/{slug}", response_class=HTMLResponse)
+async def blog_detail(slug: str, request: Request, db: AsyncSession = Depends(get_db)):
+    user = await get_current_user(request, db)
+    post = (await db.execute(
+        select(NewsPost)
+        .options(selectinload(NewsPost.author))
+        .where(NewsPost.slug == slug, NewsPost.is_published == True, NewsPost.is_blog == True)
+    )).scalar_one_or_none()
+    if not post:
+        return RedirectResponse("/blog", 302)
+    post.views_count = (post.views_count or 0) + 1
+    await db.commit()
+    return render(request, "news_detail.html", {"user": user, "post": post})
 
 
 # ── Static pages ───────────────────────────────────────────────────────────────
@@ -249,5 +302,19 @@ async def contact(request: Request, db: AsyncSession = Depends(get_db)):
 @router.post("/contact")
 async def contact_post(request: Request, db: AsyncSession = Depends(get_db),
                        name: str = Form(""), email: str = Form(""), message: str = Form("")):
+    from services import email as mail
     user = await get_current_user(request, db)
+    if name and email and message:
+        from core.config import CONTACT_EMAIL
+        mail.send_contact_form(CONTACT_EMAIL, name, email, message)
     return render(request, "pages/contact.html", {"user": user, "sent": True})
+
+@router.get("/privacy", response_class=HTMLResponse)
+async def privacy(request: Request, db: AsyncSession = Depends(get_db)):
+    user = await get_current_user(request, db)
+    return render(request, "pages/privacy.html", {"user": user})
+
+@router.get("/consent", response_class=HTMLResponse)
+async def consent(request: Request, db: AsyncSession = Depends(get_db)):
+    user = await get_current_user(request, db)
+    return render(request, "pages/consent.html", {"user": user})

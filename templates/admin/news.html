@@ -21,8 +21,9 @@
       <tr>
         <th>Заголовок</th>
         <th>Тип</th>
-        <th>Опубликован</th>
+        <th>Статус</th>
         <th>Просмотры</th>
+        <th>Обложка</th>
         <th>Создан</th>
         <th style="text-align:right">Действия</th>
       </tr>
@@ -32,20 +33,33 @@
       <tr>
         <td>
           <div class="tbl-name">{{ p.title }}</div>
-          {% if p.excerpt %}<div style="font-size:12px;color:var(--text-dim);margin-top:3px">{{ p.excerpt[:80] }}</div>{% endif %}
+          {% if p.excerpt %}<div style="font-size:12px;color:var(--text-dim);margin-top:3px">{{ p.excerpt[:80] }}{% if p.excerpt|length > 80 %}...{% endif %}</div>{% endif %}
         </td>
         <td><span class="badge badge-{% if p.is_blog %}purple{% else %}blue{% endif %}">{% if p.is_blog %}Блог{% else %}Новость{% endif %}</span></td>
         <td>
           {% if p.is_published %}<span class="badge badge-em">✓ Опубликован</span>{% else %}<span class="badge badge-grey">Черновик</span>{% endif %}
         </td>
         <td>{{ p.views_count or 0 }}</td>
+        <td>
+          {% if p.cover %}
+            <img src="{{ p.cover }}" style="height:36px;width:60px;object-fit:cover;border-radius:6px;border:1px solid var(--card-border)" alt="">
+          {% else %}
+            <span style="font-size:11px;color:var(--text-dim)">—</span>
+          {% endif %}
+        </td>
         <td style="color:var(--text-dim);font-size:12.5px">{{ p.created_at.strftime('%d.%m.%Y') }}</td>
         <td style="text-align:right">
-          <a href="/{% if p.is_blog %}blog{% else %}news{% endif %}" target="_blank" class="btn btn-secondary btn-sm">Открыть →</a>
+          <div style="display:flex;gap:6px;justify-content:flex-end;align-items:center">
+            <a href="/{% if p.is_blog %}blog{% else %}news{% endif %}/{{ p.slug }}" target="_blank" class="btn btn-secondary btn-sm">Открыть →</a>
+            <a href="/admin/news/{{ p.id }}/edit" class="btn btn-secondary btn-sm">Изменить</a>
+            <form method="post" action="/admin/news/{{ p.id }}/delete" onsubmit="return confirm('Удалить «{{ p.title }}»?')" style="display:inline">
+              <button type="submit" class="btn btn-sm" style="background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25);color:#f87171">Удалить</button>
+            </form>
+          </div>
         </td>
       </tr>
       {% else %}
-      <tr><td colspan="6"><div class="empty"><div class="empty-icon">📰</div><h3>Постов пока нет</h3><p>Создайте первый — нажмите «Новый пост»</p></div></td></tr>
+      <tr><td colspan="7"><div class="empty"><div class="empty-icon">📰</div><h3>Постов пока нет</h3><p>Создайте первый — нажмите «Новый пост»</p></div></td></tr>
       {% endfor %}
     </tbody>
   </table>

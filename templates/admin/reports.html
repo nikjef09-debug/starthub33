@@ -1,0 +1,196 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Отчёты — Admin{% endblock %}
+
+{% block admin_head %}
+.rep-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.rep-kpi{background:rgba(14,24,21,0.55);backdrop-filter:blur(20px);border:1px solid var(--glass-border);border-radius:var(--radius);padding:20px;position:relative;overflow:hidden;transition:all .3s}
+.rep-kpi:hover{border-color:var(--em-border);transform:translateY(-2px)}
+.rep-kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--em-border-strong),transparent)}
+.rep-kpi-label{font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px}
+.rep-kpi-value{font-family:'Syne',sans-serif;font-size:28px;font-weight:700;letter-spacing:-.5px;color:var(--text)}
+.rep-kpi-sub{font-size:12px;color:var(--text-dim);margin-top:4px}
+.rep-kpi-icon{position:absolute;right:16px;top:16px;width:36px;height:36px;border-radius:10px;background:var(--em-dim);border:1px solid var(--em-border);display:flex;align-items:center;justify-content:center;color:var(--em)}
+.rep-kpi-icon svg{width:18px;height:18px}
+
+.dl-btn{display:inline-flex;align-items:center;gap:8px;padding:9px 18px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;text-decoration:none;border:1px solid var(--em-border);background:var(--em-dim);color:var(--em2)}
+.dl-btn:hover{background:rgba(16,185,129,0.2);transform:translateY(-1px)}
+.dl-btn svg{width:15px;height:15px}
+
+.status-bar{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+.st-pill{padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600}
+.st-pending{background:rgba(251,191,36,0.12);color:#fbbf24;border:1px solid rgba(251,191,36,0.25)}
+.st-active{background:rgba(96,165,250,0.12);color:#60a5fa;border:1px solid rgba(96,165,250,0.25)}
+.st-closed_ok{background:rgba(74,222,128,0.12);color:#4ade80;border:1px solid rgba(74,222,128,0.25)}
+.st-closed_fail{background:rgba(248,113,113,0.12);color:#f87171;border:1px solid rgba(248,113,113,0.25)}
+.st-documents{background:rgba(168,85,247,0.12);color:#c084fc;border:1px solid rgba(168,85,247,0.25)}
+
+.role-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--card-border);font-size:13px}
+.role-row:last-child{border:none}
+.role-bar-wrap{flex:1;margin:0 16px;height:6px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden}
+.role-bar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--em3),var(--em2))}
+
+@media(max-width:1100px){.rep-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:640px){.rep-grid{grid-template-columns:1fr}}
+{% endblock %}
+
+{% block admin_content %}
+<div class="page-h">
+  <div class="page-h-left">
+    <h1>Отчёты</h1>
+    <p>Сформировано: {{ generated_at }}</p>
+  </div>
+  <div class="page-h-right" style="display:flex;gap:10px;flex-wrap:wrap">
+    <a href="/admin/reports/download?report_type=general" class="dl-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Общий
+    </a>
+    <a href="/admin/reports/download?report_type=deals" class="dl-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      По сделкам
+    </a>
+    <a href="/admin/reports/download?report_type=financial" class="dl-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Финансовый
+    </a>
+  </div>
+</div>
+
+<!-- KPI -->
+<div class="rep-grid">
+  <div class="rep-kpi reveal">
+    <div class="rep-kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="9" cy="8" r="4"/><path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/><circle cx="17" cy="8" r="3"/><path d="M21 21v-2a3 3 0 00-2-2.83"/></svg></div>
+    <div class="rep-kpi-label">Пользователей</div>
+    <div class="rep-kpi-value">{{ users_total }}</div>
+    <div class="rep-kpi-sub">на платформе</div>
+  </div>
+  <div class="rep-kpi reveal" style="transition-delay:.05s">
+    <div class="rep-kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4.5 17l5-5 4 4 6-6"/><path d="M14 6h6v6"/></svg></div>
+    <div class="rep-kpi-label">Стартапов</div>
+    <div class="rep-kpi-value">{{ startups_total }}</div>
+    <div class="rep-kpi-sub">{{ startups_active }} активных · {{ startups_sold }} продано</div>
+  </div>
+  <div class="rep-kpi reveal" style="transition-delay:.1s">
+    <div class="rep-kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 11l-3 3-3-3"/><path d="M19 14V4"/></svg></div>
+    <div class="rep-kpi-label">Сделок</div>
+    <div class="rep-kpi-value">{{ deals_total }}</div>
+    <div class="rep-kpi-sub">{{ deals_by_status.get('closed_ok', 0) }} успешных</div>
+  </div>
+  <div class="rep-kpi reveal" style="transition-delay:.15s">
+    <div class="rep-kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div>
+    <div class="rep-kpi-label">Сумма сделок</div>
+    <div class="rep-kpi-value" style="font-size:22px">{{ deals_amount_total | money }}</div>
+    <div class="rep-kpi-sub">закрытых успешно</div>
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+
+  <!-- Сделки по статусам -->
+  <div class="card reveal">
+    <div class="card-title">Сделки по статусам</div>
+    <div class="status-bar" style="margin-bottom:16px">
+      {% for status, cnt in deals_by_status.items() %}
+      <span class="st-pill st-{{ status }}">{{ status }}: {{ cnt }}</span>
+      {% endfor %}
+    </div>
+    {% for status, cnt in deals_by_status.items() %}
+    <div class="role-row">
+      <span style="color:var(--text);min-width:120px">{{ status }}</span>
+      <div class="role-bar-wrap">
+        <div class="role-bar-fill" style="width:{% if deals_total %}{{ (cnt / deals_total * 100) | int }}%{% else %}0%{% endif %}"></div>
+      </div>
+      <span style="color:var(--em2);font-weight:700;min-width:30px;text-align:right">{{ cnt }}</span>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Пользователи по ролям -->
+  <div class="card reveal" style="transition-delay:.05s">
+    <div class="card-title">Пользователи по ролям</div>
+    {% for role, cnt in users_by_role.items() %}
+    <div class="role-row">
+      <span style="color:var(--text);min-width:110px">{{ role }}</span>
+      <div class="role-bar-wrap">
+        <div class="role-bar-fill" style="width:{% if users_total %}{{ (cnt / users_total * 100) | int }}%{% else %}0%{% endif %};background:linear-gradient(90deg,rgba(96,165,250,0.8),rgba(96,165,250,1))"></div>
+      </div>
+      <span style="color:#60a5fa;font-weight:700;min-width:30px;text-align:right">{{ cnt }}</span>
+    </div>
+    {% endfor %}
+    <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--card-border);display:flex;justify-content:space-between;font-size:13px">
+      <span style="color:var(--text-muted)">Всего</span>
+      <span style="font-weight:700">{{ users_total }}</span>
+    </div>
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 320px;gap:16px">
+
+  <!-- Последние сделки -->
+  <div class="table-wrap reveal">
+    <div class="tbl-toolbar">
+      <h3>Последние сделки</h3>
+      <a href="/admin/reports/download?report_type=deals" class="dl-btn" style="padding:6px 14px;font-size:12px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Скачать
+      </a>
+    </div>
+    <table class="tbl">
+      <thead><tr><th>#</th><th>Стартап</th><th>Покупатель</th><th>Статус</th><th>Сумма</th><th>Дата</th></tr></thead>
+      <tbody>
+        {% for d in recent_deals %}
+        <tr>
+          <td style="color:var(--text-dim);font-size:12px">#{{ d.id }}</td>
+          <td class="tbl-name">{{ d.startup.title[:30] }}</td>
+          <td>{{ d.buyer.full_name or d.buyer.username }}</td>
+          <td><span class="deal-status {{ d.status.value }}">{{ d.status.value }}</span></td>
+          <td style="color:var(--em2);font-weight:600">{{ (d.final_amount or d.amount) | money if (d.final_amount or d.amount) else '—' }}</td>
+          <td style="color:var(--text-dim);font-size:12px">{{ d.created_at.strftime('%d.%m.%Y') if d.created_at else '—' }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-dim)">Сделок нет</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Финансовая сводка -->
+  <div style="display:flex;flex-direction:column;gap:14px">
+    <div class="card reveal" style="transition-delay:.05s">
+      <div class="card-title">
+        💰 Финансы
+        <a href="/admin/reports/download?report_type=financial" class="dl-btn" style="padding:5px 12px;font-size:11px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Скачать
+        </a>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:2px">
+        <div class="role-row">
+          <span style="color:var(--text-muted)">Пополнений кошельков</span>
+          <span style="font-weight:700;color:#4ade80">{{ deposits_total | money }}</span>
+        </div>
+        <div class="role-row">
+          <span style="color:var(--text-muted)">Кол-во пополнений</span>
+          <span style="font-weight:700">{{ deposits_count }}</span>
+        </div>
+        <div class="role-row">
+          <span style="color:var(--text-muted)">Сумма сделок (закрытых)</span>
+          <span style="font-weight:700;color:#4ade80">{{ deals_amount_total | money }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Топ стартапы -->
+    <div class="card reveal" style="transition-delay:.1s">
+      <div class="card-title">🏆 Топ стартапы</div>
+      {% for s in top_startups %}
+      <div class="role-row">
+        <span style="font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px">{{ s.title }}</span>
+        <span style="color:var(--em2);font-weight:700;font-size:13px;white-space:nowrap">{{ s.deals_count }} сделок</span>
+      </div>
+      {% else %}
+      <p style="color:var(--text-dim);font-size:13px">Нет данных</p>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

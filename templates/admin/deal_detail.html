@@ -1,0 +1,162 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Сделка #{{ deal.id }} — Admin{% endblock %}
+
+{% block admin_head %}
+.deal-grid{display:grid;grid-template-columns:1fr 340px;gap:16px}
+.info-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--card-border);font-size:14px}
+.info-row:last-child{border-bottom:none}
+.info-label{color:var(--text-muted)}
+.info-val{font-weight:600}
+.msg-list{max-height:360px;overflow-y:auto;display:flex;flex-direction:column;gap:8px}
+.msg-item{padding:10px 14px;border-radius:8px;font-size:13px;background:var(--card-bg);border:1px solid var(--card-border)}
+.msg-item .msg-sender{font-weight:600;font-size:11px;color:var(--green);margin-bottom:4px}
+.msg-item .msg-time{font-size:11px;color:var(--text-muted)}
+.doc-item{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;
+          border:1px solid var(--card-border);border-radius:8px;margin-bottom:8px;font-size:13px}
+@media(max-width:1024px){.deal-grid{grid-template-columns:1fr}}
+{% endblock %}
+
+{% block admin_content %}
+<div class="page-h">
+  <div class="page-h-left">
+    <div style="display:flex;align-items:center;gap:12px">
+      <a href="/admin/deals" style="color:var(--text-muted);font-size:13px">← Все сделки</a>
+      <h1>Сделка #{{ deal.id }}</h1>
+      <span class="status-badge status-{{ deal.status.value }}">{{ deal.status.value }}</span>
+    </div>
+    <p>{{ deal.startup.title }} · {{ deal.buyer.full_name or deal.buyer.username }}</p>
+  </div>
+</div>
+
+<div class="deal-grid">
+  <!-- Левая часть -->
+  <div>
+    <!-- Информация -->
+    <div class="card reveal">
+      <div class="card-title">Информация о сделке</div>
+      <div class="info-row"><span class="info-label">Стартап</span><span class="info-val">{{ deal.startup.title }}</span></div>
+      <div class="info-row"><span class="info-label">Продавец</span><span class="info-val">{{ deal.startup.author.full_name or deal.startup.author.username }}</span></div>
+      <div class="info-row"><span class="info-label">Покупатель</span><span class="info-val">{{ deal.buyer.full_name or deal.buyer.username }}</span></div>
+      <div class="info-row"><span class="info-label">Первоначальная сумма</span><span class="info-val">{{ (deal.amount | money) if deal.amount else '—' }}</span></div>
+      <div class="info-row"><span class="info-label">Итоговая сумма</span><span class="info-val">{{ (deal.final_amount | money) if deal.final_amount else '—' }}</span></div>
+      <div class="info-row"><span class="info-label">Статус</span><span class="info-val">{{ deal.status.value }}</span></div>
+      <div class="info-row"><span class="info-label">Создана</span><span class="info-val">{{ deal.created_at.strftime('%d.%m.%Y %H:%M') }}</span></div>
+      {% if deal.closed_at %}<div class="info-row"><span class="info-label">Закрыта</span><span class="info-val">{{ deal.closed_at.strftime('%d.%m.%Y %H:%M') }}</span></div>{% endif %}
+    </div>
+
+    <!-- Редактирование -->
+    <div class="card reveal" style="transition-delay:.05s">
+      <div class="card-title">✏️ Редактировать сделку</div>
+      <form method="post" action="/admin/deals/{{ deal.id }}/edit">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+          <div class="form-group">
+            <label>Статус</label>
+            <select name="status">
+              {% for s in deal_statuses %}
+              <option value="{{ s }}" {% if s == deal.status.value %}selected{% endif %}>{{ s }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Итоговая сумма (₽)</label>
+            <input type="number" name="final_amount" value="{{ deal.final_amount or '' }}" step="0.01">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Заметка</label>
+          <textarea name="note" rows="2">{{ deal.note or '' }}</textarea>
+        </div>
+        <button type="submit" class="btn">Сохранить</button>
+      </form>
+    </div>
+
+    <!-- Генерация акта -->
+    {% if deal.status.value == 'closed_ok' %}
+    <div class="card reveal" style="transition-delay:.07s">
+      <div class="card-title">📄 Документы сделки</div>
+      <form method="post" action="/deal/{{ deal.id }}/generate-act" style="margin-bottom:12px">
+        <button type="submit" class="btn" style="width:100%">Сгенерировать акт завершения</button>
+      </form>
+    </div>
+    {% endif %}
+
+    <!-- Документы -->
+    <div class="card reveal" style="transition-delay:.1s">
+      <div class="card-title">📎 Загруженные файлы ({{ deal.documents|length }})</div>
+      {% for doc in deal.documents %}
+      <div class="doc-item">
+        <span>{{ doc.filename }}</span>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span style="font-size:11px;color:var(--text-muted)">{{ doc.doc_type }}</span>
+          <a href="{{ doc.filepath }}" target="_blank" class="btn btn-sm btn-ghost">Открыть</a>
+        </div>
+      </div>
+      {% else %}
+      <p style="color:var(--text-muted);font-size:13px">Файлов нет</p>
+      {% endfor %}
+    </div>
+
+    <!-- Платежи -->
+    {% if deal.payments %}
+    <div class="card reveal" style="transition-delay:.12s">
+      <div class="card-title">💳 Платежи</div>
+      {% for p in deal.payments %}
+      <div class="doc-item">
+        <span>{{ p.method.value }} · {{ p.amount | money }}</span>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span class="status-badge status-{{ p.status.value }}">{{ p.status.value }}</span>
+          {% if p.receipt_path %}<a href="{{ p.receipt_path }}" target="_blank" class="btn btn-sm btn-ghost">Чек</a>{% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Сообщения -->
+    <div class="card reveal" style="transition-delay:.15s">
+      <div class="card-title">💬 Чат ({{ deal.messages|length }})</div>
+      <div class="msg-list">
+        {% for msg in deal.messages %}
+        <div class="msg-item">
+          <div class="msg-sender">{{ msg.sender.full_name if msg.sender else 'Система' }}</div>
+          <div>{{ msg.body }}</div>
+          <div class="msg-time">{{ msg.created_at.strftime('%d.%m.%Y %H:%M') }}</div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Правая панель -->
+  <div>
+    <!-- Менеджеры -->
+    <div class="card reveal">
+      <div class="card-title">👤 Менеджеры</div>
+      {% for m in deal.managers %}
+      <div class="info-row"><span>{{ m.full_name or m.username }}</span><span class="badge-role">{{ m.role.value }}</span></div>
+      {% else %}
+      <p style="font-size:13px;color:var(--text-muted)">Менеджер не назначен</p>
+      {% endfor %}
+      <form method="post" action="/admin/deals/{{ deal.id }}/assign-manager" style="margin-top:12px">
+        <select name="manager_id" style="margin-bottom:8px;width:100%">
+          {% for m in all_managers %}
+          <option value="{{ m.id }}">{{ m.full_name or m.username }} ({{ m.role.value }})</option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="btn" style="width:100%">Назначить</button>
+      </form>
+    </div>
+
+    <!-- Ссылка на чат -->
+    <div class="card reveal" style="transition-delay:.05s">
+      <div class="card-title">Действия</div>
+      <a href="/deal/{{ deal.id }}" target="_blank" class="btn" style="width:100%;margin-bottom:8px;display:block;text-align:center">
+        Открыть чат сделки
+      </a>
+      <a href="/admin/users/{{ deal.buyer_id }}" class="btn btn-ghost" style="width:100%;display:block;text-align:center">
+        Профиль покупателя
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

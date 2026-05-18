@@ -1,5 +1,5 @@
 {% extends "admin/base_admin.html" %}
-{% block title %}Новый пост — Admin{% endblock %}
+{% block title %}{% if post %}Редактировать пост{% else %}Новый пост{% endif %} — Admin{% endblock %}
 
 {% block admin_head %}
 .form-card{
@@ -24,51 +24,70 @@
 .cb-label .cb-fake::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .25s}
 .cb-label input:checked + .cb-fake{background:var(--em);border-color:var(--em-border-strong)}
 .cb-label input:checked + .cb-fake::after{transform:translateX(16px)}
+.cover-preview{height:120px;border-radius:10px;object-fit:cover;display:block;margin-bottom:10px;border:1px solid var(--card-border)}
 {% endblock %}
 
 {% block admin_content %}
 <div class="page-h">
   <div class="page-h-left">
     <h1>{% if post %}Редактировать пост{% else %}Новый пост{% endif %}</h1>
-    <p>Создание новости или статьи для блога</p>
+    <p>{% if post %}Изменение существующей публикации{% else %}Создание новости или статьи для блога{% endif %}</p>
   </div>
   <a href="/admin/news" class="btn btn-secondary btn-sm">← Назад</a>
 </div>
 
-<form method="post" action="/admin/news/new" class="form-card reveal">
+<form method="post"
+      action="{% if post %}/admin/news/{{ post.id }}/edit{% else %}/admin/news/new{% endif %}"
+      enctype="multipart/form-data"
+      class="form-card reveal">
+
   <div class="form-group">
     <label>Заголовок *</label>
-    <input type="text" name="title" required placeholder="Например: StartHub запустил новую версию">
+    <input type="text" name="title" required placeholder="Например: StartHub запустил новую версию"
+           value="{{ post.title if post else '' }}">
   </div>
 
   <div class="form-row">
     <div class="form-group">
       <label>Категория</label>
-      <input type="text" name="category" placeholder="Технологии, инвестиции...">
+      <input type="text" name="category" placeholder="Технологии, инвестиции..."
+             value="{{ post.category if post else '' }}">
     </div>
     <div class="form-group">
       <label>Тип</label>
       <select name="is_blog">
-        <option value="0">Новость</option>
-        <option value="1">Статья блога</option>
+        <option value="0" {% if not post or not post.is_blog %}selected{% endif %}>Новость</option>
+        <option value="1" {% if post and post.is_blog %}selected{% endif %}>Статья блога</option>
       </select>
     </div>
   </div>
 
   <div class="form-group">
+    <label>Обложка</label>
+    {% if post and post.cover %}
+    <img src="{{ post.cover }}" class="cover-preview" alt="Текущая обложка">
+    <p style="font-size:12px;color:var(--text-dim);margin-bottom:8px">Загрузите новый файл, чтобы заменить обложку</p>
+    {% endif %}
+    <input type="file" name="cover" accept="image/jpeg,image/png,image/webp"
+           style="padding:8px 14px;cursor:pointer;font-size:13px;color:var(--text-muted)">
+    <p style="font-size:12px;color:var(--text-dim);margin-top:6px">JPG, PNG или WebP, до 5 МБ. Рекомендуемое соотношение 16:9.</p>
+  </div>
+
+  <div class="form-group">
     <label>Короткое описание</label>
-    <textarea name="excerpt" placeholder="2-3 предложения для превью" style="min-height:80px"></textarea>
+    <textarea name="excerpt" placeholder="2-3 предложения для превью" style="min-height:80px">{{ post.excerpt if post else '' }}</textarea>
   </div>
 
   <div class="form-group">
     <label>Полный текст *</label>
-    <textarea name="body" required placeholder="Содержимое статьи..." style="min-height:240px"></textarea>
+    <textarea name="body" required placeholder="Содержимое статьи..." style="min-height:280px">{{ post.body if post else '' }}</textarea>
   </div>
 
   <div class="form-group">
     <div class="checkbox-row">
       <label class="cb-label">
-        <input type="checkbox" name="is_published" value="1" checked>
+        <input type="checkbox" name="is_published" value="1"
+               {% if not post or post.is_published %}checked{% endif %}>
         <span class="cb-fake"></span>
         Опубликовать сразу
       </label>
@@ -78,9 +97,19 @@
   <div style="display:flex;gap:10px;padding-top:14px;border-top:1px solid var(--card-border)">
     <button type="submit" class="btn btn-primary">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-      Сохранить
+      {% if post %}Сохранить изменения{% else %}Создать пост{% endif %}
     </button>
     <a href="/admin/news" class="btn btn-secondary">Отмена</a>
   </div>
 </form>
+
+{% if post %}
+<form method="post" action="/admin/news/{{ post.id }}/delete"
+      onsubmit="return confirm('Удалить «{{ post.title }}»? Это действие необратимо.')"
+      style="max-width:760px;margin-top:12px">
+  <button type="submit" class="btn btn-sm" style="background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25);color:#f87171">
+    Удалить пост
+  </button>
+</form>
+{% endif %}
 {% endblock %}

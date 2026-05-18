@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% block title %}Чек пополнения #{{ tx.id }} — StartHub{% endblock %}
+
+{% block head %}
+<style>
+.receipt-page{max-width:640px;margin:48px auto;padding:0 20px}
+.receipt-card{background:linear-gradient(160deg,#0c1f15 0%,#091510 100%);border:1px solid rgba(16,185,129,0.2);border-radius:24px;overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,0.5)}
+.receipt-head{background:linear-gradient(135deg,#064e2d,#0a3322 60%,#071a11);padding:40px;position:relative;overflow:hidden;text-align:center}
+.receipt-head::before{content:'';position:absolute;top:-80px;right:-80px;width:250px;height:250px;border-radius:50%;background:rgba(16,185,129,0.1)}
+.receipt-head::after{content:'';position:absolute;bottom:-60px;left:-60px;width:200px;height:200px;border-radius:50%;background:rgba(5,150,105,0.07)}
+.receipt-icon{width:72px;height:72px;background:linear-gradient(135deg,#22c55e,#15803d);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;position:relative;z-index:1;box-shadow:0 0 40px rgba(34,197,94,0.3)}
+.receipt-head h1{font-size:28px;font-weight:800;color:#fff;letter-spacing:-0.5px;position:relative;z-index:1;margin-bottom:6px}
+.receipt-head .sub{font-size:14px;color:rgba(255,255,255,0.55);position:relative;z-index:1}
+.amount-banner{background:rgba(16,185,129,0.08);border-top:1px solid rgba(16,185,129,0.15);border-bottom:1px solid rgba(16,185,129,0.15);padding:28px 40px;text-align:center}
+.amount-label{font-size:11px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:10px}
+.amount-value{font-size:52px;font-weight:800;color:#4ade80;letter-spacing:-2px;line-height:1}
+.amount-method{font-size:13px;color:rgba(255,255,255,0.4);margin-top:10px}
+.receipt-body{padding:32px 40px}
+.r-section{margin-bottom:28px}
+.r-section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#4ade80;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.r-section-title::after{content:'';flex:1;height:1px;background:rgba(16,185,129,0.15)}
+.r-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:14px}
+.r-row:last-child{border-bottom:none}
+.r-label{color:rgba(226,232,240,0.45)}
+.r-value{color:#e2e8f0;font-weight:600;text-align:right}
+.r-value.green{color:#4ade80}
+.r-value.yellow{color:#fbbf24}
+.tx-badge{font-family:monospace;font-size:12px;background:rgba(255,255,255,0.06);padding:4px 10px;border-radius:6px;color:rgba(226,232,240,0.5)}
+.status-ok{background:rgba(74,222,128,0.12);color:#4ade80;border:1px solid rgba(74,222,128,0.25);padding:4px 14px;border-radius:20px;font-size:12px;font-weight:700}
+.receipt-actions{display:flex;gap:12px;padding:24px 40px;border-top:1px solid rgba(255,255,255,0.05);flex-wrap:wrap}
+.btn-receipt{flex:1;min-width:140px;padding:14px 20px;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;text-align:center;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .2s;font-family:inherit;border:none}
+.btn-dl{background:linear-gradient(135deg,#22c55e,#15803d);color:#fff}
+.btn-dl:hover{opacity:.9}
+.btn-back{background:rgba(255,255,255,0.06);color:var(--text-muted);border:1px solid rgba(255,255,255,0.1)!important}
+.btn-back:hover{background:rgba(255,255,255,0.1);color:var(--text)}
+.user-block{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:16px 20px;display:flex;align-items:center;gap:16px;margin-bottom:20px}
+.user-ava{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#22c55e,#15803d);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff;flex-shrink:0}
+.user-name{font-size:15px;font-weight:700;color:#e2e8f0;margin-bottom:2px}
+.user-meta{font-size:12px;color:rgba(226,232,240,0.35)}
+.receipt-footer{padding:20px 40px;border-top:1px solid rgba(255,255,255,0.04);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.rf-logo{font-size:15px;font-weight:800;color:#4ade80}
+.rf-note{font-size:11px;color:rgba(226,232,240,0.2)}
+@media(max-width:600px){.receipt-page{padding:0 12px;margin:24px auto}.receipt-head,.amount-banner,.receipt-body,.receipt-actions,.receipt-footer{padding-left:24px;padding-right:24px}.amount-value{font-size:36px}}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="receipt-page">
+  <div class="receipt-card">
+
+    <!-- Header -->
+    <div class="receipt-head">
+      <div class="receipt-icon">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+      </div>
+      <h1>Баланс пополнен</h1>
+      <div class="sub">Операция выполнена успешно · Транзакция <span class="tx-badge">#{{ tx.id }}</span></div>
+    </div>
+
+    <!-- Amount -->
+    <div class="amount-banner">
+      <div class="amount-label">Сумма пополнения</div>
+      <div class="amount-value">+{{ tx.amount | money }}</div>
+      <div class="amount-method">{{ tx.description or 'Пополнение баланса' }}</div>
+    </div>
+
+    <!-- Body -->
+    <div class="receipt-body">
+
+      <!-- User -->
+      <div class="r-section">
+        <div class="r-section-title">Аккаунт</div>
+        <div class="user-block">
+          <div class="user-ava">{{ (user.full_name or user.username)[0].upper() }}</div>
+          <div>
+            <div class="user-name">{{ user.full_name or user.username }}</div>
+            <div class="user-meta">@{{ user.username }} · {{ user.email }} · ID #{{ user.id }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Transaction details -->
+      <div class="r-section">
+        <div class="r-section-title">Детали операции</div>
+        <div class="r-row"><span class="r-label">Номер транзакции</span><span class="r-value"><span class="tx-badge">#{{ tx.id }}</span></span></div>
+        <div class="r-row"><span class="r-label">Сумма</span><span class="r-value green">+{{ tx.amount | money }}</span></div>
+        <div class="r-row"><span class="r-label">Способ</span><span class="r-value">{{ tx.description or '—' }}</span></div>
+        <div class="r-row"><span class="r-label">Дата и время</span><span class="r-value">{{ tx.created_at.strftime('%d.%m.%Y %H:%M') }} UTC</span></div>
+        <div class="r-row"><span class="r-label">Статус</span><span class="r-value"><span class="status-ok">✓ Зачислено</span></span></div>
+      </div>
+
+      <!-- Wallet state -->
+      {% if wallet %}
+      <div class="r-section">
+        <div class="r-section-title">Состояние кошелька</div>
+        <div class="r-row"><span class="r-label">Текущий баланс</span><span class="r-value yellow">{{ wallet.balance | money }}</span></div>
+        <div class="r-row"><span class="r-label">Всего пополнено</span><span class="r-value">{{ wallet.total_deposited | money }}</span></div>
+      </div>
+      {% endif %}
+
+    </div>
+
+    <!-- Actions -->
+    <div class="receipt-actions">
+      <a href="/wallet/receipt/{{ tx.id }}/download" class="btn-receipt btn-dl">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Скачать чек
+      </a>
+      <a href="/wallet" class="btn-receipt btn-back">
+        ← Кошелёк
+      </a>
+      <a href="/" class="btn-receipt btn-back">
+        На главную
+      </a>
+    </div>
+
+    <div class="receipt-footer">
+      <div class="rf-logo">StartHub</div>
+      <div class="rf-note">Это автоматически сформированный чек · info@starthub33.ru</div>
+    </div>
+  </div>
+</div>
+{% endblock %}

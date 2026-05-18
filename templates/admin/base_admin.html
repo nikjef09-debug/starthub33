@@ -54,6 +54,151 @@ body{
 }
 a{color:inherit;text-decoration:none}
 ::selection{background:var(--em-dim);color:var(--em2)}
+
+/* ── Custom Select Component ────────────────────────────────────────────────── */
+/* Скрываем нативный select, он заменяется JS-компонентом */
+select.cs-hidden{display:none!important}
+.cs-wrap{position:relative;width:100%}
+.cs-trigger{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:11px 16px;
+  background:rgba(16,185,129,0.04);
+  border:1px solid var(--card-border);
+  border-radius:12px;
+  color:var(--text);
+  font-size:14px;font-family:'DM Sans',sans-serif;
+  cursor:pointer;
+  transition:border-color .2s,background .2s,box-shadow .2s;
+  user-select:none;
+  min-height:44px;
+}
+.cs-trigger:hover{border-color:var(--em-border);background:rgba(16,185,129,0.07);}
+.cs-trigger.open{
+  border-color:var(--em-border-strong);
+  background:rgba(16,185,129,0.08);
+  box-shadow:0 0 0 3px var(--em-dim);
+  border-bottom-left-radius:0;
+  border-bottom-right-radius:0;
+}
+.cs-trigger-text{flex:1;text-align:left}
+.cs-arrow{
+  width:18px;height:18px;flex-shrink:0;
+  color:rgba(16,185,129,0.6);
+  transition:transform .2s;
+}
+.cs-trigger.open .cs-arrow{transform:rotate(180deg)}
+
+.cs-dropdown{
+  position:absolute;top:100%;left:0;right:0;z-index:500;
+  background:var(--surface);
+  border:1px solid var(--em-border);
+  border-top:none;
+  border-bottom-left-radius:12px;
+  border-bottom-right-radius:12px;
+  overflow:hidden;
+  box-shadow:0 16px 48px rgba(0,0,0,0.5);
+  animation:csDropIn .15s cubic-bezier(.22,1,.36,1);
+}
+@keyframes csDropIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+
+.cs-optgroup-label{
+  padding:8px 14px 4px;
+  font-size:10px;font-weight:700;
+  text-transform:uppercase;letter-spacing:1.2px;
+  color:var(--em2);
+  opacity:.7;
+}
+.cs-option{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 16px;
+  font-size:13.5px;color:var(--text-muted);
+  cursor:pointer;
+  transition:background .12s,color .12s;
+  position:relative;
+}
+.cs-option:hover{background:var(--em-dim);color:var(--text)}
+.cs-option.selected{
+  background:var(--em-dim2);color:var(--em2);font-weight:600;
+}
+.cs-option.selected::after{
+  content:'';position:absolute;right:14px;top:50%;transform:translateY(-50%);
+  width:6px;height:6px;border-radius:50%;background:var(--em);
+}
+.cs-option:last-child{border-radius:0 0 12px 12px}
+ content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ═════════════════════════════════════════════════════════════════════════════
+   ADMIN — DARK EMERALD LIQUID GLASS
+   ═════════════════════════════════════════════════════════════════════════════ */
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#050908;
+  --bg2:#081210;
+  --surface:#0E1815;
+  --surface2:#13211C;
+
+  --em:#10B981;
+  --em2:#34D399;
+  --em3:#059669;
+  --em4:#6EE7B7;
+  --em-dark:#064E3B;
+  --em-dim:rgba(16,185,129,0.12);
+  --em-dim2:rgba(16,185,129,0.06);
+  --em-border:rgba(16,185,129,0.22);
+  --em-border-strong:rgba(16,185,129,0.4);
+  --em-glow:rgba(16,185,129,0.35);
+
+  --text:#ECFDF5;
+  --text-muted:rgba(236,253,245,0.55);
+  --text-dim:rgba(236,253,245,0.3);
+
+  --card-bg:rgba(16,185,129,0.025);
+  --card-border:rgba(255,255,255,0.06);
+  --card-border-hover:rgba(16,185,129,0.32);
+  --glass-bg:rgba(14,24,21,0.55);
+  --glass-border:rgba(16,185,129,0.1);
+
+  --radius:16px;
+  --radius-sm:10px;
+
+  --sidebar-w:264px;
+  --topbar-h:72px;
+}
+
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:'DM Sans',system-ui,sans-serif;
+  min-height:100vh;overflow-x:hidden;
+}
+a{color:inherit;text-decoration:none}
+::selection{background:var(--em-dim);color:var(--em2)}
+
+/* ── Custom select styling ─────────────────────────────────────────────────── */
+select{
+  appearance:none;-webkit-appearance:none;
+  background:var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='rgba(16,185,129,0.7)' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") no-repeat right 14px center;
+  border:1px solid var(--card-border);
+  color:var(--text);
+  padding:10px 40px 10px 14px;
+  border-radius:10px;
+  font-size:14px;
+  font-family:'DM Sans',system-ui,sans-serif;
+  cursor:pointer;
+  transition:border-color .2s, background .2s;
+  width:100%;
+}
+select:hover{border-color:var(--em-border);background-color:var(--surface2);}
+select:focus{outline:none;border-color:var(--em-border-strong);background-color:var(--em-dim2);box-shadow:0 0 0 3px var(--em-dim);}
+select option{
+  background:var(--surface);
+  color:var(--text);
+  padding:10px 14px;
+  font-size:14px;
+}
 ::-webkit-scrollbar{width:6px;height:6px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--em-border);border-radius:3px}
@@ -202,12 +347,10 @@ body::before{
    ═════════════════════════════════════════════════════════════════════════════ */
 .admin-main{
   margin-left:calc(var(--sidebar-w) - 14px);
-  width:calc(100% - var(--sidebar-w));
+  width:calc(100% - var(--sidebar-w) + 14px);
   min-height:100vh;
-
   display:flex;
   flex-direction:column;
-
   overflow-x:hidden;
 }
 
@@ -245,7 +388,7 @@ body::before{
   width:16px;height:16px;color:var(--text-dim);pointer-events:none;
 }
 
-.topbar-actions{display:flex;align-items:center;gap:10px}
+.topbar-actions{display:flex;align-items:center;gap:10px;position:relative}
 .tb-btn{
   width:38px;height:38px;border-radius:11px;
   background:var(--em-dim2);border:1px solid var(--card-border);
@@ -278,7 +421,6 @@ body::before{
   padding:24px;
   flex:1;
   width:100%;
-  max-width:1600px;
 }
 @keyframes contentIn{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
 
@@ -534,6 +676,12 @@ body::before{
         </span>
         Отзывы
       </a>
+      <a href="/admin/roles" class="nav-item {% if request.url.path.startswith('/admin/roles') %}active{% endif %}">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </span>
+        Роли и права
+      </a>
     </div>
 
     <div class="sidebar-section">
@@ -550,6 +698,22 @@ body::before{
         </span>
         Тикеты
         {% if open_tickets %}<span class="nav-badge">{{ open_tickets }}</span>{% endif %}
+      </a>
+      <a href="/admin/broadcast" class="nav-item {% if request.url.path.startswith('/admin/broadcast') %}active{% endif %}">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 3.17 11a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 2.08 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L6.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        </span>
+        Рассылка
+      </a>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Аналитика</div>
+      <a href="/admin/reports" class="nav-item {% if request.url.path.startswith('/admin/reports') %}active{% endif %}">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        </span>
+        Отчёты
       </a>
     </div>
 
@@ -592,10 +756,21 @@ body::before{
         <input type="text" placeholder="Найти пользователя, стартап, сделку..." id="globalSearch">
       </div>
       <div class="topbar-actions">
-        <button class="tb-btn" title="Уведомления">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-          <span class="dot"></span>
-        </button>
+        <div class="notif-wrap" id="adminNotifWrap">
+          <button class="tb-btn" id="adminBellBtn" title="Уведомления" onclick="toggleAdminNotif(event)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span class="dot" id="adminBellDot" style="display:none"></span>
+          </button>
+          <div class="notif-dropdown" id="adminNotifDropdown" style="display:none;position:absolute;right:0;top:calc(100% + 8px);width:340px;background:var(--surface);border:1px solid var(--em-border);border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,0.5);z-index:999;overflow:hidden">
+            <div style="padding:14px 18px;border-bottom:1px solid var(--glass-border);display:flex;justify-content:space-between;align-items:center">
+              <span style="font-weight:700;font-size:14px">Уведомления</span>
+              <a href="/notifications" style="font-size:12px;color:var(--em2)">Все →</a>
+            </div>
+            <div id="adminNotifList" style="max-height:380px;overflow-y:auto">
+              <div style="padding:24px;text-align:center;color:var(--text-dim);font-size:13px">Загрузка...</div>
+            </div>
+          </div>
+        </div>
         <a href="/" class="tb-btn" title="На сайт">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12l2-2 7-7 7 7 2 2"/><path d="M5 10v10a1 1 0 0 0 1 1h3v-6h6v6h3a1 1 0 0 0 1-1V10"/></svg>
         </a>
@@ -634,5 +809,155 @@ document.querySelectorAll('.toggle').forEach(setupToggle);
 
 {% block admin_scripts %}{% endblock %}
 </script>
+
+<script>
+async function loadAdminNotifs() {
+  try {
+    const r = await fetch('/api/notifications');
+    if (!r.ok) return;
+    const data = await r.json();
+    const list = document.getElementById('adminNotifList');
+    const dot = document.getElementById('adminBellDot');
+    if (!list) return;
+    if (!data.length) {
+      list.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-dim);font-size:13px">Нет уведомлений</div>';
+      return;
+    }
+    const unread = data.filter(n => !n.is_read);
+    if (dot) dot.style.display = unread.length ? 'block' : 'none';
+    list.innerHTML = data.map(n => `
+      <a href="${n.link || '/notifications'}" style="display:block;padding:12px 18px;border-bottom:1px solid var(--glass-border);text-decoration:none;transition:background .15s" onmouseover="this.style.background='var(--em-dim)'" onmouseout="this.style.background=''">
+        <div style="font-size:13px;font-weight:${n.is_read ? 400 : 600};color:var(--text);margin-bottom:3px">${escA(n.title)}</div>
+        <div style="font-size:12px;color:var(--text-muted)">${escA(n.body)}</div>
+        ${!n.is_read ? '<div style="width:6px;height:6px;border-radius:50%;background:var(--em);float:right;margin-top:-20px"></div>' : ''}
+      </a>`).join('');
+  } catch(e) {}
+}
+function escA(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function toggleAdminNotif(e) {
+  e.stopPropagation();
+  const d = document.getElementById('adminNotifDropdown');
+  const isOpen = d.style.display !== 'none';
+  d.style.display = isOpen ? 'none' : 'block';
+  if (!isOpen) loadAdminNotifs();
+}
+document.addEventListener('click', () => {
+  const d = document.getElementById('adminNotifDropdown');
+  if (d) d.style.display = 'none';
+});
+document.addEventListener('DOMContentLoaded', async () => {
+  // just check for unread count on load
+  try {
+    const r = await fetch('/api/notifications');
+    if (!r.ok) return;
+    const data = await r.json();
+    const dot = document.getElementById('adminBellDot');
+    if (dot && data.filter(n=>!n.is_read).length) dot.style.display='block';
+  } catch(e) {}
+});
+</script>
+
+<script>
+// ── Custom Select ──────────────────────────────────────────────────────────────
+(function(){
+  function buildCS(sel){
+    if(sel.dataset.csBuilt) return;
+    sel.dataset.csBuilt = '1';
+    sel.classList.add('cs-hidden');
+
+    const wrap = document.createElement('div');
+    wrap.className = 'cs-wrap';
+    sel.parentNode.insertBefore(wrap, sel);
+    wrap.appendChild(sel);
+
+    // Trigger button
+    const trigger = document.createElement('div');
+    trigger.className = 'cs-trigger';
+    trigger.setAttribute('tabindex','0');
+    trigger.setAttribute('role','combobox');
+    trigger.setAttribute('aria-expanded','false');
+    trigger.innerHTML = `<span class="cs-trigger-text">${getLabel(sel)}</span><svg class="cs-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>`;
+    wrap.insertBefore(trigger, sel);
+
+    // Dropdown
+    const dropdown = document.createElement('div');
+    dropdown.className = 'cs-dropdown';
+    dropdown.style.display = 'none';
+
+    // Build options from original select
+    function rebuildOptions(){
+      dropdown.innerHTML = '';
+      Array.from(sel.children).forEach(child => {
+        if(child.tagName === 'OPTGROUP'){
+          const lbl = document.createElement('div');
+          lbl.className = 'cs-optgroup-label';
+          lbl.textContent = child.label;
+          dropdown.appendChild(lbl);
+          Array.from(child.children).forEach(opt => addOption(opt));
+        } else if(child.tagName === 'OPTION'){
+          addOption(child);
+        }
+      });
+    }
+
+    function addOption(opt){
+      const div = document.createElement('div');
+      div.className = 'cs-option' + (opt.selected ? ' selected' : '');
+      div.dataset.value = opt.value;
+      div.textContent = opt.textContent.trim();
+      div.addEventListener('click', e => {
+        e.stopPropagation();
+        sel.value = opt.value;
+        sel.dispatchEvent(new Event('change', {bubbles:true}));
+        trigger.querySelector('.cs-trigger-text').textContent = opt.textContent.trim();
+        dropdown.querySelectorAll('.cs-option').forEach(o => o.classList.remove('selected'));
+        div.classList.add('selected');
+        close();
+      });
+      dropdown.appendChild(div);
+    }
+
+    function getLabel(s){
+      const sel = s.options[s.selectedIndex];
+      return sel ? sel.textContent.trim() : '—';
+    }
+
+    function open(){
+      rebuildOptions();
+      dropdown.style.display = 'block';
+      trigger.classList.add('open');
+      trigger.setAttribute('aria-expanded','true');
+      wrap.appendChild(dropdown);
+    }
+    function close(){
+      dropdown.style.display = 'none';
+      trigger.classList.remove('open');
+      trigger.setAttribute('aria-expanded','false');
+    }
+
+    trigger.addEventListener('click', e => {
+      e.stopPropagation();
+      dropdown.style.display === 'none' ? open() : close();
+    });
+    trigger.addEventListener('keydown', e => {
+      if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); dropdown.style.display==='none'?open():close(); }
+      if(e.key === 'Escape') close();
+    });
+    document.addEventListener('click', close);
+  }
+
+  function initAll(){
+    document.querySelectorAll('select:not(.cs-hidden):not([data-cs-skip])').forEach(buildCS);
+  }
+
+  document.addEventListener('DOMContentLoaded', initAll);
+  // Also catch dynamically added selects (for modals)
+  const obs = new MutationObserver(() => initAll());
+  document.addEventListener('DOMContentLoaded', () => {
+    obs.observe(document.body, {childList:true, subtree:true});
+  });
+})();
+</script>
+
 </body>
 </html>

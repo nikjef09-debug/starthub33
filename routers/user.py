@@ -20,6 +20,7 @@ from models.user import User, Wallet, Transaction, ActivityLog
 from services.notifications import create_notification, log_activity
 from utils.helpers import save_image, slugify
 from routers.deps import render
+from models.subscription import Subscription
 
 router = APIRouter()
 
@@ -50,9 +51,13 @@ async def profile(request: Request, db: AsyncSession = Depends(get_db)):
     else:
         deals_count    = (await db.execute(select(func.count(Deal.id)).where(Deal.buyer_id == user.id))).scalar()
         startups_count = 0
+    # Load subscription
+    from sqlalchemy import select as _sel
+    subscription = (await db.execute(_sel(Subscription).where(Subscription.user_id == user.id))).scalar_one_or_none()
     return render(request, "user/profile.html", {
         "user": user, "wallet": wallet, "activity": activity,
         "unread_notifs": unread_notifs, "deals_count": deals_count, "startups_count": startups_count,
+        "subscription": subscription,
     })
 
 
@@ -94,6 +99,28 @@ async def notifications_page(request: Request, db: AsyncSession = Depends(get_db
     return render(request, "user/notifications.html", {"user": user, "notifications": notifs})
 
 
+
+
+# ── Notifications API (for bell dropdown) ──────────────────────────────────────
+
+@router.get("/api/notifications")
+async def api_notifications(request: Request, db: AsyncSession = Depends(get_db)):
+    user = await get_current_user(request, db)
+    if not user:
+        return JSONResponse([], status_code=200)
+    notifs = (await db.execute(
+        select(Notification).where(Notification.user_id == user.id)
+        .order_by(Notification.created_at.desc()).limit(20)
+    )).scalars().all()
+    return JSONResponse([{
+        "id": n.id,
+        "title": n.title,
+        "body": n.body,
+        "link": n.link,
+        "is_read": n.is_read,
+        "created_at": n.created_at.strftime("%d.%m %H:%M") if n.created_at else "",
+    } for n in notifs])
+
 # ── Wallet ─────────────────────────────────────────────────────────────────────
 
 @router.get("/wallet", response_class=HTMLResponse)
@@ -108,21 +135,79 @@ async def wallet_page(request: Request, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/wallet/deposit")
-async def wallet_deposit(request: Request, db: AsyncSession = Depends(get_db), amount: float = Form(...)):
+async def wallet_deposit(request: Request, db: AsyncSession = Depends(get_db),
+                         amount: float = Form(...), method: str = Form("online")):
     user = await get_current_user(request, db)
     if not user:
         return RedirectResponse("/login", 302)
     if amount <= 0:
         raise HTTPException(400, "Сумма пополнения должна быть положительной")
     wallet = (await db.execute(select(Wallet).where(Wallet.user_id == user.id))).scalar_one_or_none()
-    if wallet:
-        wallet.balance += amount
-        wallet.total_deposited += amount
-        db.add(Transaction(wallet_id=wallet.id, type="deposit", amount=amount,
-                           status=WithdrawStatus.approved, description="Пополнение баланса"))
-        await log_activity(db, user.id, "deposit", "wallet", wallet.id, detail=f"+{amount}")
+    if not wallet:
+        return RedirectResponse("/wallet", 302)
+    wallet.balance += amount
+    wallet.total_deposited += amount
+    method_labels = {"online": "Картой", "qr": "QR / СБП", "bank": "Банковский перевод"}
+    desc = "Пополнение баланса · " + method_labels.get(method, "Картой")
+    tx = Transaction(wallet_id=wallet.id, type="deposit", amount=amount,
+                     status=WithdrawStatus.approved, description=desc)
+    db.add(tx)
+    await db.flush()
+    tx_id = tx.id
+    await log_activity(db, user.id, "deposit", "wallet", wallet.id, detail=f"+{amount}")
     await db.commit()
-    return RedirectResponse("/wallet", 302)
+    from services import email as mail
+    if user.email:
+        mail.send_deposit_receipt(user.email, user.username, user.id, tx_id,
+                                  amount, method, wallet.balance)
+    return RedirectResponse(f"/wallet/receipt/{tx_id}", 302)
+
+
+@router.get("/wallet/receipt/{tx_id}", response_class=HTMLResponse)
+async def wallet_receipt_page(tx_id: int, request: Request, db: AsyncSession = Depends(get_db)):
+    user = await get_current_user(request, db)
+    if not user:
+        return RedirectResponse("/login", 302)
+    tx = (await db.execute(
+        select(Transaction).where(Transaction.id == tx_id)
+    )).scalar_one_or_none()
+    if not tx:
+        raise HTTPException(404)
+    wallet = (await db.execute(select(Wallet).where(Wallet.id == tx.wallet_id))).scalar_one_or_none()
+    if not wallet or wallet.user_id != user.id:
+        raise HTTPException(403)
+    return render(request, "user/deposit_receipt.html", {"user": user, "tx": tx, "wallet": wallet})
+
+
+@router.get("/wallet/receipt/{tx_id}/download")
+async def wallet_receipt_download(tx_id: int, request: Request, db: AsyncSession = Depends(get_db)):
+    from fastapi.responses import Response
+    from services.documents import generate_wallet_receipt_pdf
+    user = await get_current_user(request, db)
+    if not user:
+        return RedirectResponse("/login", 302)
+    tx = (await db.execute(
+        select(Transaction).where(Transaction.id == tx_id)
+    )).scalar_one_or_none()
+    if not tx:
+        raise HTTPException(404)
+    wallet = (await db.execute(select(Wallet).where(Wallet.id == tx.wallet_id))).scalar_one_or_none()
+    if not wallet or wallet.user_id != user.id:
+        raise HTTPException(403)
+    pdf_bytes = generate_wallet_receipt_pdf(
+        tx_id=tx.id,
+        username=user.username,
+        user_id=user.id,
+        user_email=user.email or "",
+        amount=tx.amount,
+        description=tx.description or "Пополнение баланса",
+        balance_after=wallet.balance,
+    )
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="receipt_{tx_id}.pdf"'},
+    )
 
 
 # ── Support tickets ────────────────────────────────────────────────────────────
@@ -145,8 +230,19 @@ async def support_new(request: Request, db: AsyncSession = Depends(get_db),
     user = await get_current_user(request, db)
     if not user:
         return RedirectResponse("/login", 302)
-    db.add(SupportTicket(user_id=user.id, subject=subject, body=body,
-                         priority=TicketPriority(priority)))
+    from models.enums import NotifType
+    from services import email as mail
+    ticket = SupportTicket(user_id=user.id, subject=subject, body=body,
+                           priority=TicketPriority(priority))
+    db.add(ticket)
+    await db.flush()
+    staff = (await db.execute(
+        select(User).where(User.role.in_([UserRole.admin, UserRole.manager]))
+    )).scalars().all()
+    for su in staff:
+        await create_notification(db, su.id, NotifType.ticket,
+                                  f"Новый тикет: {subject}",
+                                  body[:100], "/admin/tickets")
     await log_activity(db, user.id, "ticket_created", "ticket", detail=subject)
     await db.commit()
     return RedirectResponse("/support", 302)
@@ -183,6 +279,11 @@ async def new_startup_post(request: Request, db: AsyncSession = Depends(get_db),
     user = await get_current_user(request, db)
     if not user:
         return RedirectResponse("/login", 302)
+    # Проверка лимита стартапов по тарифу
+    from routers.subscription import check_startup_limit
+    ok_s, reason_s = await check_startup_limit(user, db)
+    if not ok_s:
+        return render(request, "user/startup_form.html", {"user": user, "startup": None, "error": reason_s})
     slug = f"{slugify(title)}-{uuid.uuid4().hex[:6]}"
     startup = Startup(
         author_id=user.id, title=title, slug=slug, category=category, stage=stage,
@@ -314,3 +415,66 @@ async def add_review(startup_id: int, request: Request, db: AsyncSession = Depen
                       startup_id=startup_id, rating=max(1, min(5, rating)), comment=comment))
         await db.commit()
     return RedirectResponse(f"/startup/{startup.slug}", 302)
+
+
+# ── 2FA Setup ──────────────────────────────────────────────────────────────────
+
+@router.post("/settings/2fa/setup")
+async def twofa_setup(request: Request, db: AsyncSession = Depends(get_db)):
+    import pyotp, qrcode, io, base64
+    user = await get_current_user(request, db)
+    if not user:
+        return RedirectResponse("/login", 302)
+    secret = pyotp.random_base32()
+    totp = pyotp.TOTP(secret)
+    uri = totp.provisioning_uri(user.email, issuer_name="StartHub")
+    qr = qrcode.make(uri)
+    buf = io.BytesIO()
+    qr.save(buf, format="PNG")
+    qr_b64 = base64.b64encode(buf.getvalue()).decode()
+    user.totp_secret = secret
+    user.totp_enabled = False
+    await db.commit()
+    return render(request, "user/2fa_setup.html", {
+        "user": user, "qr_code": qr_b64, "secret": secret, "error": None,
+    })
+
+
+@router.post("/settings/2fa/confirm")
+async def twofa_confirm(request: Request, db: AsyncSession = Depends(get_db),
+                        code: str = Form(...)):
+    import pyotp, qrcode, io, base64
+    user = await get_current_user(request, db)
+    if not user or not user.totp_secret:
+        return RedirectResponse("/profile", 302)
+    totp = pyotp.TOTP(user.totp_secret)
+    if not totp.verify(code.strip(), valid_window=1):
+        uri = totp.provisioning_uri(user.email, issuer_name="StartHub")
+        qr = qrcode.make(uri)
+        buf = io.BytesIO()
+        qr.save(buf, format="PNG")
+        qr_b64 = base64.b64encode(buf.getvalue()).decode()
+        return render(request, "user/2fa_setup.html", {
+            "user": user, "qr_code": qr_b64, "secret": user.totp_secret,
+            "error": "Неверный код. Проверьте приложение и попробуйте снова.",
+        })
+    user.totp_enabled = True
+    await db.commit()
+    return RedirectResponse("/profile?2fa=enabled", 302)
+
+
+@router.post("/settings/2fa/disable")
+async def twofa_disable(request: Request, db: AsyncSession = Depends(get_db),
+                        code: str = Form(...)):
+    import pyotp
+    user = await get_current_user(request, db)
+    if not user:
+        return RedirectResponse("/login", 302)
+    if user.totp_enabled and user.totp_secret:
+        totp = pyotp.TOTP(user.totp_secret)
+        if not totp.verify(code.strip(), valid_window=1):
+            return RedirectResponse("/profile?2fa_error=wrong_code", 302)
+    user.totp_enabled = False
+    user.totp_secret = None
+    await db.commit()
+    return RedirectResponse("/profile?2fa=disabled", 302)

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # StartHub v2 — Рефакторинг
 
 ## Структура проекта
@@ -57,3 +58,7 @@ python main.py
 | `EMAIL_USER` | Нет | Gmail-адрес для отправки писем |
 | `EMAIL_PASS` | Нет | Пароль приложения Gmail |
 | `APP_BASE_URL` | Нет | URL сайта (для ссылок в письмах, по умолчанию localhost:8000) |
+=======
+# starthub33
+asd
+>>>>>>> 28f86386ae969ee7bb8889089b2ca47995066c1d

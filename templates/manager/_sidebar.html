@@ -10,25 +10,44 @@
     Дашборд
   </a>
 
+  {% if perms.view_deals or perms.view_tickets or perms.view_startups or perms.view_users %}
   <div class="admin-nav-section">Работа</div>
+  {% endif %}
+
+  {% if perms.view_deals %}
   <a href="/manager/deals" class="admin-nav-item {% if '/manager/deals' in request.url.path %}active{% endif %}">
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
     Сделки
   </a>
+  {% endif %}
+
+  {% if perms.view_tickets %}
   <a href="/manager/tickets" class="admin-nav-item {% if '/manager/tickets' in request.url.path %}active{% endif %}">
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
     Тикеты поддержки
   </a>
+  {% endif %}
 
-  <div class="admin-nav-section">Просмотр</div>
+  {% if perms.view_startups %}
   <a href="/manager/startups" class="admin-nav-item {% if '/manager/startups' in request.url.path %}active{% endif %}">
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 19 22 19"/></svg>
     Стартапы
   </a>
+  {% endif %}
+
+  {% if perms.view_users %}
   <a href="/manager/users" class="admin-nav-item {% if '/manager/users' in request.url.path %}active{% endif %}">
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
     Пользователи
   </a>
+  {% endif %}
+
+  {% if not (perms.view_deals or perms.view_tickets or perms.view_startups or perms.view_users) %}
+  <div style="padding:12px 16px;font-size:12px;color:var(--text-dim);line-height:1.5">
+    ⚠️ У вашей роли нет прав на просмотр разделов.<br>
+    Обратитесь к администратору.
+  </div>
+  {% endif %}
 
   <div class="admin-sidebar-footer">
     <a href="/profile" class="admin-nav-item">👤 Мой профиль</a>

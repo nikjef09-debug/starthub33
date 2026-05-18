@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Подтверждение email — StartHub{% endblock %}
+{% block head %}
+<style>
+.auth-box{max-width:440px;margin:80px auto;padding:0 20px}
+.auth-card{background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius);padding:48px 40px;text-align:center}
+</style>
+{% endblock %}
+{% block content %}
+<div class="auth-box">
+  <div class="auth-card reveal">
+    {% if success %}
+    <div style="font-size:56px;margin-bottom:20px">✅</div>
+    <h1 style="font-size:22px;font-weight:800;margin-bottom:10px">Email подтверждён!</h1>
+    <p style="font-size:15px;color:var(--text-muted);margin-bottom:28px;line-height:1.6">
+      Ваш адрес электронной почты успешно подтверждён. Теперь вы можете пользоваться всеми возможностями платформы.
+    </p>
+    <a href="/profile" class="btn btn-primary" style="padding:13px 32px">Перейти в профиль</a>
+    {% else %}
+    <div style="font-size:56px;margin-bottom:20px">❌</div>
+    <h1 style="font-size:22px;font-weight:800;margin-bottom:10px">Ссылка недействительна</h1>
+    <p style="font-size:15px;color:var(--text-muted);margin-bottom:28px;line-height:1.6">
+      Ссылка для подтверждения устарела или уже была использована. Запросите новое письмо.
+    </p>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+      {% if user %}
+      <form method="post" action="/resend-verification">
+        <button type="submit" class="btn btn-primary" style="padding:13px 28px">Отправить снова</button>
+      </form>
+      {% endif %}
+      <a href="/profile" class="btn btn-secondary" style="padding:13px 28px">В профиль</a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

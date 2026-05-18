@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 {% block title %}Сделка #{{ deal.id }} — StartHub{% endblock %}
 {% block content %}
 
@@ -12,7 +12,7 @@
           <p>
             Сделка #{{ deal.id }} &nbsp;·&nbsp;
             <span class="deal-status {{ deal.status.value }}" style="font-size:11px">{{ deal.status.value }}</span>
-            &nbsp;·&nbsp; <a href="/startup/{{ deal.startup.slug }}" style="color:var(--orange2)">Страница стартапа →</a>
+            &nbsp;·&nbsp; <a href="/startup/{{ deal.startup.slug }}" style="color:var(--em2)">Страница стартапа →</a>
           </p>
         </div>
       </div>
@@ -28,7 +28,7 @@
         {% elif msg.type.value == 'document' %}
         <div class="msg {% if msg.sender_id == user.id %}own{% else %}other{% endif %}">
           {% if msg.sender_id != user.id %}<div class="msg-sender">{{ msg.sender.full_name or msg.sender.username if msg.sender else '—' }}</div>{% endif %}
-          <div class="msg-bubble" style="color:var(--orange2)">📎 {{ msg.body }}</div>
+          <div class="msg-bubble" style="color:var(--em2)">📎 {{ msg.body }}</div>
           <div class="msg-time">{{ msg.created_at.strftime('%H:%M') }}</div>
         </div>
         {% else %}
@@ -60,7 +60,7 @@
       <h3>Информация</h3>
       <div class="deal-info-row"><span>Статус</span><span class="deal-status {{ deal.status.value }}">{{ deal.status.value }}</span></div>
       <div class="deal-info-row"><span>Создана</span><span>{{ deal.created_at.strftime('%d.%m.%Y') }}</span></div>
-      {% if deal.amount %}<div class="deal-info-row"><span>Предложение</span><span style="color:var(--orange)">{{ deal.amount | money }}</span></div>{% endif %}
+      {% if deal.amount %}<div class="deal-info-row"><span>Предложение</span><span style="color:var(--em2)">{{ deal.amount | money }}</span></div>{% endif %}
       {% if deal.note %}
       <div style="margin-top:12px;background:rgba(255,255,255,0.03);border:1px solid var(--card-border);border-radius:8px;padding:12px;font-size:13px;color:var(--text-muted)">
         «{{ deal.note }}»
@@ -101,9 +101,10 @@
     <!-- Documents -->
     <div class="deal-panel">
       <h3>Документы</h3>
-      {% if deal.documents %}
+      {% set regular_docs = deal.documents | selectattr('doc_type', 'ne', 'receipt') | list %}
+      {% if regular_docs %}
       <div class="doc-list">
-        {% for doc in deal.documents %}
+        {% for doc in regular_docs %}
         <div class="doc-item">
           <div class="doc-icon">📄</div>
           <a href="{{ doc.filepath }}" target="_blank" class="doc-name" style="color:var(--text-muted)">{{ doc.filename }}</a>
@@ -124,6 +125,54 @@
         </form>
       </div>
     </div>
+
+    <!-- Payment receipts -->
+    {% if deal.payments %}
+    {% set paid = deal.payments | selectattr('receipt_path') | list %}
+    {% if paid %}
+    <div class="deal-panel">
+      <h3 style="display:flex;align-items:center;gap:8px">
+        🧾 Чеки платежей
+        <span style="background:rgba(16,185,129,0.15);color:#4ade80;border-radius:20px;padding:2px 8px;font-size:11px;font-weight:700">{{ paid|length }}</span>
+      </h3>
+      {% for p in paid %}
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:rgba(16,185,129,0.05);border:1px solid rgba(16,185,129,0.12);border-radius:10px;margin-bottom:7px">
+        <div>
+          <div style="font-size:13px;font-weight:600;color:#4ade80">{{ p.amount | money }}</div>
+          <div style="font-size:11px;color:var(--text-dim);margin-top:2px">{{ p.method.value }} · {{ p.created_at.strftime('%d.%m.%Y %H:%M') if p.created_at else '' }}</div>
+        </div>
+        <a href="{{ p.receipt_path }}" target="_blank"
+           style="display:flex;align-items:center;gap:6px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.2);color:#4ade80;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;text-decoration:none;transition:background .2s"
+           onmouseover="this.style.background='rgba(16,185,129,0.2)'" onmouseout="this.style.background='rgba(16,185,129,0.1)'">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Скачать чек
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% endif %}
+
+    <!-- Payment block -->
+    {% if is_buyer and deal.status.value in ['active', 'documents'] %}
+    <div class="deal-panel">
+      <h3>💳 Оплата</h3>
+      {% if deal.payments %}
+      <div style="margin-bottom:12px">
+        {% for p in deal.payments %}
+        <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:7px 0;border-bottom:1px solid var(--card-border)">
+          <span style="color:var(--text-muted)">{{ p.method.value }}</span>
+          <span style="color:var(--em2);font-weight:600">{{ p.amount | money }}</span>
+          <span style="padding:2px 8px;border-radius:20px;font-size:11px;{% if p.status.value=='confirmed' %}background:rgba(74,222,128,0.15);color:#4ade80{% else %}background:rgba(251,191,36,0.15);color:#fbbf24{% endif %}">{{ p.status.value }}</span>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+      <a href="/deal/{{ deal.id }}/payment" class="status-btn approve" style="width:100%;display:block;text-align:center;text-decoration:none">
+        💳 Оплатить
+      </a>
+    </div>
+    {% endif %}
 
     <!-- Status controls -->
     {% if is_author or is_manager %}
@@ -165,8 +214,50 @@
 
 {% block scripts %}
 <script>
-  // Pass JWT token to WS (read from cookie via backend or use meta tag)
   const token = "{{ request.cookies.get('access_token', '') }}";
   initDealChat({{ deal.id }}, {{ user.id }}, token);
+  initCardForm();
+
+  function switchPayTab(tab) {
+    // скрыть все панели
+    ['online','qr','cash'].forEach(t => {
+      const el = document.getElementById('tab-' + t);
+      if (el) el.style.display = 'none';
+    });
+    // показать нужную
+    const active = document.getElementById('tab-' + tab);
+    if (active) active.style.display = 'block';
+    // обновить hidden input
+    const hidden = document.getElementById('pay-method-hidden');
+    if (hidden) hidden.value = tab;
+    // стили табов
+    document.querySelectorAll('.pay-tab').forEach(btn => {
+      const isActive = btn.dataset.tab === tab;
+      btn.style.background = isActive ? 'rgba(74,197,120,0.15)' : 'rgba(255,255,255,0.03)';
+      btn.style.borderColor = isActive ? '#22c55e' : 'var(--card-border)';
+      btn.style.color = isActive ? '#4ade80' : 'var(--text-muted)';
+      if (isActive) btn.classList.add('active'); else btn.classList.remove('active');
+    });
+  }
+
+  // Превью карты
+  document.addEventListener('DOMContentLoaded', () => {
+    const num = document.getElementById('card-number');
+    const exp = document.getElementById('card-expiry');
+    if (num) {
+      num.addEventListener('input', () => {
+        const v = num.value.replace(/\s/g,'').padEnd(16,'•');
+        const preview = document.getElementById('card-preview');
+        if (preview) preview.textContent =
+          v.slice(0,4) + ' ' + v.slice(4,8) + ' ' + v.slice(8,12) + ' ' + v.slice(12,16);
+      });
+    }
+    if (exp) {
+      exp.addEventListener('input', () => {
+        const preview = document.getElementById('exp-preview');
+        if (preview) preview.textContent = exp.value || 'MM/YY';
+      });
+    }
+  });
 </script>
 {% endblock %}

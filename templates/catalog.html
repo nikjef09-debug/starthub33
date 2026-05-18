@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 {% block title %}Каталог стартапов — StartHub{% endblock %}
 {% block content %}
 <div class="catalog-wrap">
@@ -37,11 +37,11 @@
   <div class="startups-grid">
     {% for startup in startups %}
     <a href="/startup/{{ startup.slug }}" class="startup-card">
-      <div class="sc-cover" style="background:linear-gradient(135deg,#1a0a03,#3d1a07)">
+      <div class="sc-cover">
         {% if startup.cover_image %}
           <img src="{{ startup.cover_image }}" class="sc-cover-img" alt="">
         {% else %}
-          <div class="sc-cover-inner">{{ startup.emoji or '🚀' }}</div>
+          <div class="sc-cover-inner"><span>{{ startup.emoji or '🚀' }}</span></div>
         {% endif %}
         {% if startup.is_featured %}<div class="sc-badge">Featured</div>{% endif %}
       </div>
@@ -61,7 +61,7 @@
   <div class="empty-state">
     <div class="e-icon">🔍</div>
     <h3>Ничего не найдено</h3>
-    <p>Попробуйте изменить фильтры или <a href="/catalog" style="color:var(--orange2)">сбросьте</a> поиск</p>
+    <p>Попробуйте изменить фильтры или <a href="/catalog" style="color:var(--em2)">сбросьте</a> поиск</p>
   </div>
   {% endif %}
 </div>

@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 {% block title %}Мои сделки — StartHub{% endblock %}
 {% block content %}
 <div class="page-wrap">
@@ -30,7 +30,7 @@
           {% elif deal.status.value == 'closed_ok' %}🎉 Закрыта
           {% else %}✕ Отменена{% endif %}
         </span>
-        <span style="font-size:13px;color:var(--orange2)">Открыть →</span>
+        <span style="font-size:13px;color:var(--em2)">Открыть →</span>
       </div>
     </a>
     {% endfor %}

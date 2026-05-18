@@ -33,7 +33,7 @@
     <h2>{{ target.full_name or target.username }}</h2>
     <div class="email">{{ target.email }}</div>
     <div class="ph-stats">
-      <span class="badge badge-{% if target.role.value == 'admin' %}amber{% elif target.role.value == 'manager' %}purple{% elif target.role.value == 'author' %}em{% else %}blue{% endif %}">{{ target.role.value }}</span>
+      <span class="badge badge-{% if target.role.value == 'admin' %}amber{% elif target.role.value == 'manager' %}purple{% elif target.role.value == 'developer' %}blue{% elif target.role.value == 'author' %}em{% else %}blue{% endif %}">{{ target.role.value }}</span>
       {% if target.is_banned %}<span class="badge badge-red">🚫 Заблокирован</span>{% elif target.is_verified %}<span class="badge badge-em">✓ Verified</span>{% endif %}
       <span class="badge badge-grey">Регистрация: {{ target.created_at.strftime('%d.%m.%Y') }}</span>
     </div>
@@ -58,19 +58,30 @@
     <div class="detail-row"><span>Локация</span><span>{{ target.location or '—' }}</span></div>
     <div class="detail-row"><span>Сайт</span><span>{{ target.website or '—' }}</span></div>
     <div class="detail-row"><span>Был онлайн</span><span>{{ target.last_seen.strftime('%d.%m.%Y %H:%M') if target.last_seen else '—' }}</span></div>
+    <div class="detail-row">
+      <span>Согласие на рассылку</span>
+      <span>
+        {% if target.email_consent %}
+          <span class="badge badge-em">✓ Согласен</span>
+        {% else %}
+          <span class="badge badge-grey">Не дано</span>
+        {% endif %}
+      </span>
+    </div>
   </div>
 
   <!-- Role change -->
   <div class="card reveal" style="transition-delay:.1s">
-    <div class="card-title">Изменить роль</div>
+    <div class="card-title">Основная роль</div>
     <form method="post" action="/admin/users/{{ target.id }}/role" style="display:flex;flex-direction:column;gap:14px">
-      <select name="role" style="background:var(--em-dim2);border:1px solid var(--card-border);color:var(--text);padding:10px 14px;border-radius:10px;font-size:14px;font-family:inherit;outline:none">
-        <option value="buyer" {% if target.role.value == 'buyer' %}selected{% endif %}>Инвестор (buyer)</option>
-        <option value="author" {% if target.role.value == 'author' %}selected{% endif %}>Автор (author)</option>
-        <option value="manager" {% if target.role.value == 'manager' %}selected{% endif %}>Менеджер (manager)</option>
-        <option value="admin" {% if target.role.value == 'admin' %}selected{% endif %}>Администратор (admin)</option>
+      <select name="role">
+        <option value="buyer"     {% if target.role.value == 'buyer'     %}selected{% endif %}>👤 Инвестор (buyer)</option>
+        <option value="author"    {% if target.role.value == 'author'    %}selected{% endif %}>🚀 Автор (author)</option>
+        <option value="manager"   {% if target.role.value == 'manager'   %}selected{% endif %}>🎯 Менеджер (manager)</option>
+        <option value="developer" {% if target.role.value == 'developer' %}selected{% endif %}>💻 Разработчик (developer)</option>
+        <option value="admin"     {% if target.role.value == 'admin'     %}selected{% endif %}>⚡ Администратор (admin)</option>
       </select>
-      <button type="submit" class="btn btn-primary">Применить</button>
+      <button type="submit" class="btn btn-primary">Применить роль</button>
     </form>
 
     {% if target.wallet %}
@@ -78,6 +89,56 @@
     <div class="detail-row"><span>Баланс</span><span style="color:var(--em2)">{{ target.wallet.balance | money }}</span></div>
     <div class="detail-row"><span>Пополнено</span><span>{{ target.wallet.total_deposited | money }}</span></div>
     <div class="detail-row"><span>Выведено</span><span>{{ target.wallet.total_withdrawn | money }}</span></div>
+    {% endif %}
+  </div>
+
+  <!-- Custom role — отдельная карточка, своя форма -->
+  <div class="card reveal" style="transition-delay:.15s">
+    <div class="card-title">Дополнительная роль (расширенные права)</div>
+
+    {% if target.custom_role_name %}
+    {% set cur_cr = custom_roles | selectattr('name','equalto',target.custom_role_name) | first | default(None) %}
+    <div style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);border-radius:12px;padding:16px 18px;margin-bottom:18px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div>
+          <div style="font-weight:700;font-size:15px;color:#4ade80">{{ cur_cr.label if cur_cr else target.custom_role_name }}</div>
+          <code style="font-size:11px;color:var(--text-dim)">{{ target.custom_role_name }}</code>
+        </div>
+        <span style="background:rgba(74,222,128,0.15);color:#4ade80;border:1px solid rgba(74,222,128,0.3);padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700">Активна</span>
+      </div>
+      {% if cur_cr and cur_cr_active_perms %}
+      <div style="display:flex;flex-wrap:wrap;gap:5px">
+        {% for k in cur_cr_active_perms %}
+        <span style="background:rgba(16,185,129,0.12);color:#a7f3d0;border:1px solid rgba(16,185,129,0.2);padding:2px 8px;border-radius:4px;font-size:11px">{{ k.replace('_',' ') }}</span>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+    {% else %}
+    <div style="background:rgba(255,255,255,0.03);border:1px solid var(--card-border);border-radius:10px;padding:14px 16px;margin-bottom:18px;font-size:13px;color:var(--text-dim)">
+      🚫 Дополнительная роль не назначена — пользователь работает только в рамках основной роли
+    </div>
+    {% endif %}
+
+    {% if custom_roles %}
+    <form method="post" action="/admin/users/{{ target.id }}/custom-role">
+      <div style="font-size:11px;color:var(--text-dim);margin-bottom:8px">Выберите набор прав</div>
+      <select name="custom_role_name" style="margin-bottom:12px">
+        <option value="__none__" {% if not target.custom_role_name %}selected{% endif %}>🚫 Без дополнительной роли</option>
+        {% for cr in custom_roles %}
+        <option value="{{ cr.name }}" {% if target.custom_role_name == cr.name %}selected{% endif %}>
+          {{ cr.label }} ({{ cr.name }})
+        </option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="btn" style="width:100%;background:rgba(16,185,129,0.12);color:var(--em2);border:1px solid var(--em-border)">
+        Назначить доп. роль
+      </button>
+    </form>
+    {% else %}
+    <p style="font-size:13px;color:var(--text-dim)">
+      Нет созданных наборов прав. <a href="/admin/roles" style="color:var(--em2)">Создать →</a>
+    </p>
     {% endif %}
   </div>
 

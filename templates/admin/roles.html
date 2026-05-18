@@ -1,0 +1,270 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Роли и права — Admin{% endblock %}
+
+{% block admin_head %}
+.role-section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-dim);margin:28px 0 12px}
+.role-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:28px}
+.role-card{border:1px solid var(--card-border);border-radius:12px;padding:20px;background:var(--card-bg)}
+.role-card.admin-card{border-color:rgba(245,158,11,0.35)}
+.role-card.manager-card{border-color:rgba(139,92,246,0.35)}
+.role-header{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.role-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.role-icon.buyer{background:rgba(59,130,246,0.15)}
+.role-icon.author{background:rgba(16,185,129,0.15)}
+.role-icon.manager{background:rgba(139,92,246,0.15)}
+.role-icon.admin{background:rgba(245,158,11,0.15)}
+.role-icon.developer{background:rgba(96,165,250,0.15)}
+.role-title{font-weight:700;font-size:15px}
+.role-desc{font-size:12px;color:var(--text-muted);margin-top:2px}
+.perm-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:12px}
+.perm-item{display:flex;align-items:center;gap:7px;font-size:12px;padding:5px 8px;
+           background:rgba(255,255,255,0.03);border-radius:6px;border:1px solid var(--card-border)}
+.perm-item input{accent-color:var(--green);width:14px;height:14px;cursor:pointer;flex-shrink:0}
+.vis-toggle{display:flex;align-items:center;gap:10px;padding:10px 0;margin-bottom:8px;
+            border-bottom:1px solid var(--card-border);font-size:13px}
+.vis-toggle label{display:flex;align-items:center;gap:8px;cursor:pointer;color:var(--text-muted)}
+.vis-toggle input{accent-color:var(--green);width:14px;height:14px}
+.form-inline{display:flex;gap:8px;margin-top:4px}
+.form-inline input{flex:1;padding:8px 12px;background:rgba(255,255,255,0.04);border:1px solid var(--card-border);border-radius:8px;color:var(--text);font-size:13px}
+.form-inline input:focus{outline:none;border-color:var(--em-border)}
+
+/* presets */
+.preset-card{border:1px solid var(--card-border);border-radius:10px;padding:16px;margin-bottom:10px}
+.preset-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.perm-badge{display:inline-block;background:rgba(16,185,129,0.15);color:var(--em2);font-size:11px;
+            padding:2px 7px;border-radius:4px;margin:2px;border:1px solid var(--em-border)}
+.perm-badge.off{background:rgba(255,255,255,0.04);color:var(--text-dim);border-color:var(--card-border)}
+@media(max-width:900px){.role-grid{grid-template-columns:1fr}.perm-grid{grid-template-columns:repeat(2,1fr)}}
+{% endblock %}
+
+{% block admin_content %}
+<div class="page-h">
+  <div class="page-h-left">
+    <h1>Роли и права доступа</h1>
+    <p>Настройте основные роли и дополнительные наборы прав</p>
+  </div>
+  <div class="page-h-right">
+    <button class="btn" onclick="document.getElementById('new-preset-modal').style.display='flex'">+ Набор прав</button>
+  </div>
+</div>
+
+<!-- ── Основные роли ── -->
+<div class="role-section-title">Основные роли платформы</div>
+<div class="role-grid">
+  {% set icons = {"buyer":"💼","author":"🚀","manager":"🎯","admin":"⚡","developer":"💻"} %}
+  {% for item in base_roles %}
+  {% set rc = item.config %}
+  <div class="role-card {{ rc.role_name }}-card reveal">
+    <div class="role-header">
+      <div class="role-icon {{ rc.role_name }}">{{ icons[rc.role_name] }}</div>
+      <div>
+        <div class="role-title">{{ rc.label }}</div>
+        <div class="role-desc">{{ rc.description or rc.role_name }}</div>
+      </div>
+    </div>
+
+    <form method="post" action="/admin/roles/base/{{ rc.role_name }}/save">
+      <!-- Label & description -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+        <div>
+          <div style="font-size:11px;color:var(--text-dim);margin-bottom:4px">Название</div>
+          <input type="text" name="label" value="{{ rc.label }}"
+                 style="width:100%;padding:7px 10px;background:rgba(255,255,255,0.04);border:1px solid var(--card-border);border-radius:8px;color:var(--text);font-size:13px;box-sizing:border-box">
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--text-dim);margin-bottom:4px">Описание</div>
+          <input type="text" name="description" value="{{ rc.description or '' }}"
+                 style="width:100%;padding:7px 10px;background:rgba(255,255,255,0.04);border:1px solid var(--card-border);border-radius:8px;color:var(--text);font-size:13px;box-sizing:border-box">
+        </div>
+      </div>
+
+      <!-- Видимость при регистрации -->
+      {% if rc.role_name in ('buyer','author') %}
+      <div class="vis-toggle">
+        <label>
+          <input type="checkbox" name="visible_at_registration" value="1"
+                 {% if rc.visible_at_registration %}checked{% endif %}>
+          Показывать при регистрации
+        </label>
+        <span style="font-size:11px;color:var(--text-dim)">(admin и manager никогда не показываются)</span>
+      </div>
+      {% else %}
+      <div style="font-size:12px;color:var(--text-dim);padding:8px 0;border-bottom:1px solid var(--card-border);margin-bottom:10px">
+        🔒 Роль недоступна при регистрации — назначается вручную
+      </div>
+      {% endif %}
+
+      <!-- Разрешения -->
+      <div style="font-size:11px;font-weight:600;color:var(--text-dim);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">Права доступа</div>
+      <div class="perm-grid">
+        {% for k in perm_keys %}
+        <label class="perm-item">
+          <input type="checkbox" name="perm_{{ k }}" value="1"
+                 {% if item.perms.get(k) %}checked{% endif %}
+                 {% if rc.role_name in ('admin', 'developer') %}checked disabled{% endif %}>
+          {{ PERM_LABELS.get(k, k.replace('_',' ')) }}
+        </label>
+        {% endfor %}
+      </div>
+
+      <button type="submit" class="btn btn-sm"
+              style="margin-top:14px;width:100%;background:rgba(16,185,129,0.12);color:var(--em2);border:1px solid var(--em-border)">
+        Сохранить
+      </button>
+    </form>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- ── Дополнительные наборы прав ── -->
+<div class="role-section-title">Дополнительные наборы прав <span style="font-size:11px;color:var(--text-dim);font-weight:400;text-transform:none">(назначаются конкретным пользователям)</span></div>
+
+{% if presets %}
+  {% for item in presets %}
+  <div class="preset-card reveal">
+    <div class="preset-header">
+      <div>
+        <span style="font-weight:700;font-size:14px">{{ item.role.label }}</span>
+        <code style="margin-left:8px;font-size:11px;color:var(--text-dim)">{{ item.role.name }}</code>
+        <span style="margin-left:8px;font-size:11px;color:var(--text-dim)">создан {{ item.role.created_at.strftime('%d.%m.%Y') }}</span>
+      </div>
+      <form method="post" action="/admin/roles/preset/{{ item.role.id }}/delete"
+            onsubmit="return confirm('Удалить набор прав?')">
+        <button class="btn btn-danger btn-sm">Удалить</button>
+      </form>
+    </div>
+    <div>
+      {% for perm, enabled in item.perms.items() %}
+        <span class="perm-badge {% if not enabled %}off{% endif %}">
+          {{ PERM_LABELS.get(perm, perm.replace('_',' ')) }}
+        </span>
+      {% endfor %}
+    </div>
+  </div>
+  {% endfor %}
+{% else %}
+  <div class="card" style="text-align:center;padding:32px;color:var(--text-muted)">
+    Дополнительных наборов прав нет. Нажмите «+ Набор прав» чтобы создать первый.
+  </div>
+{% endif %}
+
+
+<!-- ── Модалка: создать набор прав ── -->
+<style>
+#new-preset-modal .modal-box{
+  background:#0b1912;
+  border:1px solid rgba(16,185,129,0.25);
+  border-radius:20px;
+  padding:0;
+  max-width:700px;
+  width:100%;
+  max-height:92vh;
+  overflow-y:auto;
+  box-shadow:0 40px 120px rgba(0,0,0,0.8);
+}
+#new-preset-modal .modal-head{
+  background:linear-gradient(135deg,rgba(16,185,129,0.12),rgba(5,150,105,0.06));
+  border-bottom:1px solid rgba(16,185,129,0.15);
+  padding:24px 32px;
+  display:flex;justify-content:space-between;align-items:center;
+}
+#new-preset-modal .modal-head h2{margin:0;font-size:20px;font-weight:700;color:#e2e8f0}
+#new-preset-modal .modal-head p{margin:4px 0 0;font-size:13px;color:var(--text-dim)}
+#new-preset-modal .modal-close{
+  width:34px;height:34px;border-radius:9px;border:1px solid rgba(255,255,255,0.1);
+  background:rgba(255,255,255,0.05);cursor:pointer;color:var(--text-muted);
+  display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;
+  transition:all .15s;
+}
+#new-preset-modal .modal-close:hover{background:rgba(248,113,113,0.15);border-color:rgba(248,113,113,0.4);color:#f87171}
+#new-preset-modal .modal-body{padding:28px 32px}
+#new-preset-modal .perm-section-label{
+  font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;
+  color:#4ade80;margin-bottom:12px;margin-top:24px;display:flex;align-items:center;gap:8px;
+}
+#new-preset-modal .perm-section-label::after{content:'';flex:1;height:1px;background:rgba(16,185,129,0.15)}
+/* Красивые чекбоксы */
+.perm-cb-label{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 12px;
+  background:rgba(255,255,255,0.025);
+  border:1px solid rgba(255,255,255,0.06);
+  border-radius:9px;
+  cursor:pointer;
+  font-size:13px;
+  color:var(--text-muted);
+  transition:all .15s;
+  user-select:none;
+}
+.perm-cb-label:hover{background:rgba(16,185,129,0.07);border-color:rgba(16,185,129,0.2);color:var(--text)}
+.perm-cb-label input[type=checkbox]{display:none}
+.perm-cb-box{
+  width:18px;height:18px;border-radius:5px;
+  border:1.5px solid rgba(255,255,255,0.18);
+  background:rgba(255,255,255,0.04);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;transition:all .15s;
+}
+.perm-cb-label input:checked ~ .perm-cb-box{
+  background:#16a34a;border-color:#22c55e;
+}
+.perm-cb-box svg{display:none;width:11px;height:11px}
+.perm-cb-label input:checked ~ .perm-cb-box svg{display:block}
+.perm-cb-label input:checked ~ span{color:#e2e8f0;font-weight:500}
+.perm-cb-label:has(input:checked){
+  background:rgba(16,185,129,0.1);border-color:rgba(16,185,129,0.3);
+}
+.modal-perm-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+@media(max-width:600px){.modal-perm-grid{grid-template-columns:1fr 1fr}}
+</style>
+
+<div id="new-preset-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);
+     backdrop-filter:blur(6px);z-index:1000;align-items:center;justify-content:center;padding:20px">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div>
+        <h2>Новый набор прав</h2>
+        <p>Создайте дополнительный набор разрешений для назначения пользователям</p>
+      </div>
+      <button class="modal-close" onclick="document.getElementById('new-preset-modal').style.display='none'">×</button>
+    </div>
+    <div class="modal-body">
+      <form method="post" action="/admin/roles/preset/create">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:4px">
+          <div class="form-group" style="margin:0">
+            <label>Код <span style="color:var(--text-dim);font-weight:400">(латиница, без пробелов)</span></label>
+            <input type="text" name="name" placeholder="content_moderator" required
+                   pattern="[a-z0-9_]+" title="Только строчные латинские буквы, цифры и _">
+          </div>
+          <div class="form-group" style="margin:0">
+            <label>Название для отображения</label>
+            <input type="text" name="label" placeholder="Модератор контента" required>
+          </div>
+        </div>
+
+        <div class="perm-section-label">Разрешения</div>
+        <div class="modal-perm-grid">
+          {% for k in perm_keys %}
+          <label class="perm-cb-label">
+            <input type="checkbox" name="perm_{{ k }}" value="1">
+            <div class="perm-cb-box">
+              <svg viewBox="0 0 12 10" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="1,5 4,9 11,1"/>
+              </svg>
+            </div>
+            <span>{{ PERM_LABELS.get(k, k.replace('_',' ')) }}</span>
+          </label>
+          {% endfor %}
+        </div>
+
+        <div style="margin-top:28px;display:flex;gap:10px;justify-content:flex-end;padding-top:20px;border-top:1px solid rgba(255,255,255,0.05)">
+          <button type="button"
+                  onclick="document.getElementById('new-preset-modal').style.display='none'"
+                  class="btn btn-ghost">Отмена</button>
+          <button type="submit" class="btn">✓ Создать набор прав</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -65,24 +65,45 @@ async function toggleFavorite(startupId, btn) {
 // ─── DEAL WEBSOCKET CHAT ────────────────────────────────────────────────────────
 function initDealChat(dealId, currentUserId, token) {
   const messagesEl = document.getElementById('chat-messages');
-  const inputEl = document.getElementById('chat-input');
-  const sendBtn = document.getElementById('chat-send');
+  const inputEl    = document.getElementById('chat-input');
+  const sendBtn    = document.getElementById('chat-send');
   if (!messagesEl || !inputEl) return;
 
-  const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
-  const ws = new WebSocket(`${proto}//${location.host}/ws/deal/${dealId}?token=${token}`);
+  let ws = null;
+  let reconnectDelay = 1000;
+  let reconnectTimer = null;
 
-  ws.onmessage = (event) => {
-    const data = JSON.parse(event.data);
-    appendMessage(data, currentUserId);
-    messagesEl.scrollTop = messagesEl.scrollHeight;
-  };
-  ws.onerror = () => showToast('Ошибка соединения', 'error');
-  ws.onclose = () => showToast('Соединение закрыто', 'error');
+  function connect() {
+    const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+    ws = new WebSocket(`${proto}//${location.host}/ws/deal/${dealId}?token=${token}`);
+
+    ws.onopen = () => { reconnectDelay = 1000; };
+
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      appendMessage(data, currentUserId);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    };
+
+    ws.onerror = () => {};
+
+    ws.onclose = (event) => {
+      if (event.code === 1008) return;
+      reconnectTimer = setTimeout(() => {
+        reconnectDelay = Math.min(reconnectDelay * 2, 16000);
+        connect();
+      }, reconnectDelay);
+    };
+  }
 
   function send() {
     const text = inputEl.value.trim();
-    if (!text || ws.readyState !== WebSocket.OPEN) return;
+    if (!text) return;
+    if (!ws || ws.readyState !== WebSocket.OPEN) {
+      clearTimeout(reconnectTimer);
+      connect();
+      return;
+    }
     ws.send(text);
     inputEl.value = '';
     inputEl.style.height = 'auto';
@@ -97,7 +118,7 @@ function initDealChat(dealId, currentUserId, token) {
     inputEl.style.height = Math.min(inputEl.scrollHeight, 120) + 'px';
   });
 
-  // Scroll to bottom on load
+  connect();
   messagesEl.scrollTop = messagesEl.scrollHeight;
 }
 

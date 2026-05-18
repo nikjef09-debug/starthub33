@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 {% block title %}{{ startup.title }} — StartHub{% endblock %}
 {% block content %}
 <div class="startup-detail-wrap">
@@ -11,11 +11,11 @@
   <div class="sd-hero">
     <div>
       <!-- Cover -->
-      <div class="sd-cover" style="background:linear-gradient(135deg,#1a0a03,#3d1a07);margin-bottom:24px">
+      <div class="sd-cover" style="margin-bottom:24px">
         {% if startup.cover_image %}
           <img src="{{ startup.cover_image }}" alt="">
         {% else %}
-          {{ startup.emoji or '🚀' }}
+          <div class="emoji-wrap">{{ startup.emoji or '🚀' }}</div>
         {% endif %}
         {% if startup.is_featured %}
         <div class="sc-badge" style="top:16px;left:16px">⭐ Featured</div>
@@ -86,7 +86,7 @@
     {% if startup.tags %}
     <div style="margin-top:20px;display:flex;gap:8px;flex-wrap:wrap">
       {% for tag in startup.tags %}
-      <span style="background:rgba(232,93,38,0.1);border:1px solid rgba(232,93,38,0.2);color:var(--orange2);font-size:12px;padding:4px 12px;border-radius:100px">{{ tag.name }}</span>
+      <span style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.15);color:var(--em2);font-size:12px;padding:4px 12px;border-radius:100px">{{ tag.name }}</span>
       {% endfor %}
     </div>
     {% endif %}
@@ -103,9 +103,9 @@
         {% if visible_reviews %}
           {% set avg = (visible_reviews | map(attribute='rating') | sum) / visible_reviews | length %}
           <div style="display:flex;align-items:center;gap:8px">
-            <span style="font-size:28px;font-weight:800;color:var(--orange)">{{ "%.1f"|format(avg) }}</span>
+            <span style="font-size:28px;font-weight:800;color:var(--em2)">{{ "%.1f"|format(avg) }}</span>
             <div>
-              <div style="color:var(--orange);font-size:16px;letter-spacing:2px">
+              <div style="color:var(--em2);font-size:16px;letter-spacing:2px">
                 {% for i in range(1,6) %}{% if i <= avg|round(0,'ceil')|int %}★{% else %}☆{% endif %}{% endfor %}
               </div>
               <div style="font-size:12px;color:var(--text-dim)">{{ visible_reviews|length }} отзыв{{ 'ов' if visible_reviews|length > 4 else ('а' if visible_reviews|length > 1 else '') }}</div>
@@ -121,7 +121,7 @@
         ✏️ Написать отзыв
       </button>
       {% elif not user %}
-      <a href="/login" style="font-size:13px;color:var(--orange2)">Войдите чтобы оставить отзыв →</a>
+      <a href="/login" style="font-size:13px;color:var(--em2)">Войдите чтобы оставить отзыв →</a>
       {% endif %}
     </div>
 
@@ -129,10 +129,10 @@
     {% if visible_reviews %}
     <div style="display:flex;flex-direction:column;gap:16px">
       {% for r in visible_reviews %}
-      <div style="background:rgba(255,255,255,0.02);border:1px solid var(--card-border);border-radius:12px;padding:20px 24px;transition:border-color .2s" onmouseover="this.style.borderColor='rgba(232,93,38,0.2)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.08)'">
+      <div style="background:rgba(255,255,255,0.02);border:1px solid var(--card-border);border-radius:12px;padding:20px 24px;transition:border-color .2s" onmouseover="this.style.borderColor='rgba(16,185,129,0.15)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.08)'">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
           <div style="display:flex;align-items:center;gap:10px">
-            <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--orange),var(--orange3));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;flex-shrink:0">
+            <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--em2),var(--em3));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;flex-shrink:0">
               {{ (r.author.full_name or r.author.username)[0].upper() }}
             </div>
             <div>
@@ -142,7 +142,7 @@
           </div>
           <div style="display:flex;gap:2px">
             {% for i in range(1,6) %}
-            <span style="font-size:18px;color:{% if i <= r.rating %}var(--orange){% else %}rgba(255,255,255,0.15){% endif %}">★</span>
+            <span style="font-size:18px;color:{% if i <= r.rating %}var(--em2){% else %}rgba(255,255,255,0.15){% endif %}">★</span>
             {% endfor %}
           </div>
         </div>
@@ -204,7 +204,7 @@
           {% endfor %}
         </div>
         <input type="hidden" name="rating" id="rating-input" value="5">
-        <div id="rating-label" style="font-size:13px;color:var(--orange2);margin-top:8px;height:18px">Отлично</div>
+        <div id="rating-label" style="font-size:13px;color:var(--em2);margin-top:8px;height:18px">Отлично</div>
       </div>
 
       <div class="form-group">
@@ -227,7 +227,7 @@ let picked = 5;
 
 function hoverStars(n) {
   document.querySelectorAll('.review-star').forEach((s, i) => {
-    s.style.color = i < n ? 'var(--orange)' : 'rgba(255,255,255,0.15)';
+    s.style.color = i < n ? 'var(--em2)' : 'rgba(255,255,255,0.15)';
     s.style.transform = i < n ? 'scale(1.1)' : 'scale(1)';
   });
   document.getElementById('rating-label').textContent = LABELS[n] || '';

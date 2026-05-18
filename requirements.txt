@@ -9,3 +9,6 @@ python-multipart>=0.0.9
 Pillow>=10.0.0
 fastapi-mail>=1.4.1
 python-dotenv>=1.0.0
+fpdf2>=2.7.0
+pyotp>=2.9.0
+qrcode[pil]>=7.4.2

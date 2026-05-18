@@ -1,43 +1,224 @@
 {% extends "base.html" %}
 {% block title %}Регистрация — StartHub{% endblock %}
+
+{% block head %}
+<style>
+body{overflow-x:hidden}
+nav#main-nav{display:none}
+footer{display:none}
+.wrap{max-width:none;padding:0}
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="auth-wrap">
-  <div class="auth-card">
-    <div class="auth-logo">
-      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2.5"><polygon points="12 2 2 19 22 19"/></svg>
-      <h2>Создать аккаунт</h2>
-      <p>Присоединяйтесь к StartHub сегодня</p>
+<div class="auth-page">
+
+  <!-- LEFT PANEL -->
+  <div class="auth-left">
+    <div class="auth-brand">
+      <div class="auth-brand-logo">
+        <div class="auth-brand-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><polygon points="12,2 2,20 22,20" fill="white"/></svg>
+        </div>
+        <div class="auth-brand-name">Start<span>Hub</span></div>
+      </div>
+      <div class="auth-headline">Начните<br>зарабатывать<br>на <em>стартапах</em></div>
+      <div class="auth-sub">Присоединяйтесь к сообществу инвесторов и предпринимателей. Ваша следующая сделка — на расстоянии одного клика.</div>
     </div>
-    {% if error %}
-    <div class="auth-error">{{ error }}</div>
-    {% endif %}
-    <form method="post" action="/register">
-      <div class="form-group">
-        <label>Я хочу</label>
-        <select name="role">
-          <option value="buyer">💼 Инвестировать в стартапы</option>
-          <option value="author">🚀 Привлечь инвестиции</option>
-        </select>
+
+    <div class="auth-features">
+      <div class="auth-feature">
+        <div class="auth-feature-dot">🚀</div>
+        <div class="auth-feature-text"><strong>Разместите стартап</strong><br>Привлекайте инвестиции в свой проект</div>
       </div>
-      <div class="form-group">
-        <label>Полное имя</label>
-        <input type="text" name="full_name" placeholder="Иван Иванов" autocomplete="name">
+      <div class="auth-feature">
+        <div class="auth-feature-dot">💼</div>
+        <div class="auth-feature-text"><strong>Инвестируйте</strong><br>Находите перспективные проекты для вложений</div>
       </div>
-      <div class="form-group">
-        <label>Username</label>
-        <input type="text" name="username" placeholder="ivan_ivanov" required autocomplete="username">
+      <div class="auth-feature">
+        <div class="auth-feature-dot">🤝</div>
+        <div class="auth-feature-text"><strong>Закрывайте сделки</strong><br>Менеджер сопровождает каждую сделку</div>
       </div>
-      <div class="form-group">
-        <label>Email</label>
-        <input type="email" name="email" placeholder="you@example.com" required autocomplete="email">
+    </div>
+
+    <div class="auth-stats">
+      <div>
+        <div class="auth-stat-val">0%</div>
+        <div class="auth-stat-label">Комиссия на вход</div>
       </div>
-      <div class="form-group">
-        <label>Пароль</label>
-        <input type="password" name="password" placeholder="Минимум 8 символов" required autocomplete="new-password">
+      <div>
+        <div class="auth-stat-val">24/7</div>
+        <div class="auth-stat-label">Поддержка</div>
       </div>
-      <button type="submit" class="btn-orange" style="width:100%;padding:13px;font-size:15px">Создать аккаунт</button>
-    </form>
-    <div class="auth-divider">Уже есть аккаунт? <a href="/login" class="auth-link">Войти</a></div>
+      <div>
+        <div class="auth-stat-val">5 мин</div>
+        <div class="auth-stat-label">На регистрацию</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="auth-right">
+    <div class="auth-form-wrap">
+
+      <div class="auth-form-logo">
+        <div class="auth-form-logo-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><polygon points="12,2 2,20 22,20" fill="white"/></svg>
+        </div>
+        <div class="auth-form-logo-name">Start<span>Hub</span></div>
+      </div>
+
+      <div class="auth-form-title">Создать аккаунт</div>
+      <div class="auth-form-sub">Заполните форму — займёт меньше 2 минут</div>
+
+      {% if error %}
+      <div class="auth-error">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        {{ error }}
+      </div>
+      {% endif %}
+
+      <form method="post" action="/register" id="reg-form">
+
+        <!-- Выбор роли -->
+        {% if roles %}
+        <div style="margin-bottom:20px">
+          <div class="af-label" style="margin-bottom:10px">Кто вы?</div>
+          <div class="af-role-grid">
+            {% for r in roles %}
+            <label class="af-role-btn {% if loop.first %}selected{% endif %}" id="role-btn-{{ r.value }}">
+              <input type="radio" name="role" value="{{ r.value }}" {% if loop.first %}checked{% endif %}
+                     onchange="selectRole('{{ r.value }}')">
+              <div class="af-role-icon">{% if r.value == 'buyer' %}💼{% elif r.value == 'author' %}🚀{% else %}👤{% endif %}</div>
+              <div class="af-role-name">{{ r.label }}</div>
+              <div class="af-role-desc">{% if r.value == 'buyer' %}Ищу стартапы для инвестиций{% elif r.value == 'author' %}Хочу продать свой проект{% else %}Участник платформы{% endif %}</div>
+            </label>
+            {% endfor %}
+          </div>
+        </div>
+        {% else %}
+        <input type="hidden" name="role" value="buyer">
+        {% endif %}
+
+        <!-- Полное имя -->
+        <div class="af-group">
+          <label class="af-label">Полное имя</label>
+          <div class="af-input-wrap">
+            <svg class="af-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <input type="text" name="full_name" class="af-input" placeholder="Иван Иванов" autocomplete="name">
+          </div>
+        </div>
+
+        <!-- Username + Email в сетке -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="af-group">
+            <label class="af-label">Username</label>
+            <div class="af-input-wrap">
+              <svg class="af-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              <input type="text" name="username" class="af-input" placeholder="ivan_ivanov" required autocomplete="username">
+            </div>
+          </div>
+          <div class="af-group">
+            <label class="af-label">Email</label>
+            <div class="af-input-wrap">
+              <svg class="af-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              <input type="email" name="email" class="af-input" placeholder="you@example.com" required autocomplete="email">
+            </div>
+          </div>
+        </div>
+
+        <!-- Пароль -->
+        <div class="af-group">
+          <label class="af-label">Пароль</label>
+          <div class="af-input-wrap">
+            <svg class="af-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <input type="password" name="password" id="regPwd" class="af-input"
+                   placeholder="Минимум 8 символов" required autocomplete="new-password"
+                   oninput="checkStrength(this.value)">
+            <button type="button" class="af-eye" onclick="togglePwd('regPwd','eyeIcon2')" aria-label="Показать пароль">
+              <svg id="eyeIcon2" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+          <!-- Индикатор силы пароля -->
+          <div style="display:flex;gap:4px;margin-top:8px" id="strength-bars">
+            <div style="height:3px;flex:1;border-radius:2px;background:rgba(255,255,255,0.08);transition:background .3s" id="sb1"></div>
+            <div style="height:3px;flex:1;border-radius:2px;background:rgba(255,255,255,0.08);transition:background .3s" id="sb2"></div>
+            <div style="height:3px;flex:1;border-radius:2px;background:rgba(255,255,255,0.08);transition:background .3s" id="sb3"></div>
+            <div style="height:3px;flex:1;border-radius:2px;background:rgba(255,255,255,0.08);transition:background .3s" id="sb4"></div>
+          </div>
+          <div id="strength-label" style="font-size:11px;color:var(--text-dim);margin-top:4px;height:14px;transition:color .3s"></div>
+        </div>
+
+        <!-- Чекбоксы -->
+        <div style="margin-bottom:18px;display:flex;flex-direction:column;gap:6px">
+          <label class="af-check-label">
+            <input type="checkbox" name="consent" required>
+            <div class="af-check-box">
+              <svg viewBox="0 0 12 10" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1,5 4,9 11,1"/></svg>
+            </div>
+            <span>Я согласен(а) с <a href="/consent" target="_blank" style="color:var(--em2)">обработкой персональных данных</a> и <a href="/privacy" target="_blank" style="color:var(--em2)">политикой конфиденциальности</a> <span style="color:#f87171">*</span></span>
+          </label>
+          <label class="af-check-label">
+            <input type="checkbox" name="email_consent" value="1">
+            <div class="af-check-box">
+              <svg viewBox="0 0 12 10" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1,5 4,9 11,1"/></svg>
+            </div>
+            <span>Хочу получать новости и специальные предложения StartHub</span>
+          </label>
+        </div>
+
+        <button type="submit" class="auth-submit">
+          Создать аккаунт →
+        </button>
+      </form>
+
+      <div class="auth-bottom">
+        Уже есть аккаунт? <a href="/login">Войти</a>
+      </div>
+
+    </div>
   </div>
 </div>
+
+<script>
+function togglePwd(inputId, iconId) {
+  var inp = document.getElementById(inputId);
+  var icon = document.getElementById(iconId);
+  if (inp.type === 'password') {
+    inp.type = 'text';
+    icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>';
+  } else {
+    inp.type = 'password';
+    icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+  }
+}
+
+function selectRole(val) {
+  document.querySelectorAll('.af-role-btn').forEach(function(b) { b.classList.remove('selected'); });
+  var btn = document.getElementById('role-btn-' + val);
+  if (btn) btn.classList.add('selected');
+}
+
+function checkStrength(val) {
+  var score = 0;
+  if (val.length >= 8) score++;
+  if (/[A-Z]/.test(val)) score++;
+  if (/[0-9]/.test(val)) score++;
+  if (/[^A-Za-z0-9]/.test(val)) score++;
+  var colors = ['', '#ef4444', '#f97316', '#eab308', '#22c55e'];
+  var labels = ['', 'Слабый', 'Средний', 'Хороший', 'Надёжный'];
+  for (var i = 1; i <= 4; i++) {
+    document.getElementById('sb' + i).style.background = i <= score ? colors[score] : 'rgba(255,255,255,0.08)';
+  }
+  var lbl = document.getElementById('strength-label');
+  lbl.textContent = val.length > 0 ? labels[score] || '' : '';
+  lbl.style.color = colors[score] || 'var(--text-dim)';
+}
+
+document.getElementById('reg-form').addEventListener('submit', function() {
+  var btn = this.querySelector('.auth-submit');
+  btn.textContent = 'Создаём аккаунт...';
+  btn.style.opacity = '.8';
+});
+</script>
 {% endblock %}

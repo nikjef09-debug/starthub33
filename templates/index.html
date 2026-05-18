@@ -494,7 +494,7 @@
         {% if startup.cover_image %}
           <img src="{{ startup.cover_image }}" class="sc-cover-img" alt="{{ startup.title }}">
         {% else %}
-          <div class="sc-cover-inner">{{ startup.emoji or '🚀' }}</div>
+          <div class="sc-cover-inner"><span>{{ startup.emoji or '🚀' }}</span></div>
         {% endif %}
         {% if startup.is_featured %}<div class="sc-badge">⭐ Featured</div>{% endif %}
       </div>

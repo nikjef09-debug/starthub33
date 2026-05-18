@@ -54,4 +54,6 @@ EMAIL_PASS = os.getenv("EMAIL_PASS", "")
 if not EMAIL_USER or not EMAIL_PASS:
     print("\033[93m[WARNING] EMAIL_USER / EMAIL_PASS не заданы — отправка писем отключена.\033[0m")
 
-APP_BASE_URL = os.getenv("APP_BASE_URL", "http://localhost:8000")
+APP_BASE_URL    = os.getenv("APP_BASE_URL", "https://starthub33.ru")
+CONTACT_EMAIL   = os.getenv("CONTACT_EMAIL", "info@starthub33.ru")
+COOKIE_SECURE   = APP_BASE_URL.startswith("https://")

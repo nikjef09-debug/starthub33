@@ -1,0 +1,14 @@
+Collecting pyotp
+  Downloading pyotp-2.9.0-py3-none-any.whl.metadata (9.8 kB)
+Collecting qrcode>=7.4.2 (from qrcode[pil]>=7.4.2)
+  Downloading qrcode-8.2-py3-none-any.whl.metadata (17 kB)
+Requirement already satisfied: colorama in .\.venv\Lib\site-packages (from qrcode>=7.4.2->qrcode[pil]>=7.4.2) (0.4.6)
+Requirement already satisfied: pillow>=9.1.0 in .\.venv\Lib\site-packages (from qrcode[pil]>=7.4.2) (12.2.0)
+Downloading pyotp-2.9.0-py3-none-any.whl (13 kB)
+Downloading qrcode-8.2-py3-none-any.whl (45 kB)
+Installing collected packages: qrcode, pyotp
+
+Successfully installed pyotp-2.9.0 qrcode-8.2
+
+[notice] A new release of pip is available: 26.0.1 -> 26.1.1
+[notice] To update, run: python.exe -m pip install --upgrade pip

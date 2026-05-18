@@ -1,5 +1,41 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 {% block title %}Кошелёк — StartHub{% endblock %}
+
+{% block head %}
+<style>
+.pay-card{background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:20px;padding:32px}
+.pay-tabs{display:flex;gap:8px;margin-bottom:28px}
+.pay-tab-btn{flex:1;padding:11px;border-radius:12px;border:1px solid var(--card-border);background:rgba(255,255,255,0.03);color:var(--text-muted);font-size:13px;cursor:pointer;transition:all .2s;font-family:inherit}
+.pay-tab-btn.active{background:rgba(74,197,120,0.15);border-color:#22c55e;color:#4ade80;font-weight:600}
+.pay-input{width:100%;padding:13px 16px;border-radius:12px;border:1px solid var(--card-border);background:rgba(255,255,255,0.05);color:var(--text);font-size:15px;font-family:inherit;transition:border .2s;box-sizing:border-box}
+.pay-input:focus{outline:none;border-color:rgba(16,185,129,0.5);background:rgba(16,185,129,0.05)}
+.pay-label{font-size:11px;color:var(--text-muted);margin-bottom:6px;display:block;text-transform:uppercase;letter-spacing:0.5px}
+.pay-group{margin-bottom:18px}
+.card-visual{background:linear-gradient(135deg,#1a3a2a 0%,#0d1f17 100%);border-radius:18px;padding:24px;margin-bottom:24px;position:relative;overflow:hidden;min-height:150px}
+.card-visual::before{content:'';position:absolute;top:-40px;right:-40px;width:180px;height:180px;border-radius:50%;background:rgba(74,197,120,0.08)}
+.card-visual::after{content:'';position:absolute;bottom:-30px;left:-20px;width:130px;height:130px;border-radius:50%;background:rgba(16,185,129,0.06)}
+.card-num-preview{font-family:monospace;font-size:19px;color:#fff;letter-spacing:4px;margin:14px 0;position:relative;z-index:1}
+.card-meta{display:flex;justify-content:space-between;font-size:12px;color:rgba(255,255,255,0.55);position:relative;z-index:1}
+.pay-submit{width:100%;padding:15px;border-radius:14px;background:linear-gradient(135deg,#22c55e,#16a34a);border:none;color:#fff;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;transition:opacity .2s;margin-top:4px}
+.pay-submit:hover{opacity:.9}
+.qr-box{text-align:center;padding:16px 0}
+.wallet-sidebar{background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:20px;padding:28px;position:sticky;top:20px}
+.summary-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:14px}
+.summary-row:last-child{border:none}
+.summary-row span:first-child{color:var(--text-muted)}
+.info-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--card-border);font-size:13px}
+.info-row:last-child{border:none}
+.bank-box{background:rgba(255,255,255,0.03);border:1px solid var(--card-border);border-radius:12px;padding:18px;font-size:13px;line-height:2;margin-bottom:16px}
+.bank-row{display:flex;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.05);padding:4px 0}
+.bank-row:last-child{border:none}
+.bank-row span:first-child{color:var(--text-muted)}
+.bank-row span:last-child{font-weight:500}
+.copy-btn{background:rgba(255,255,255,0.06);border:1px solid var(--card-border);border-radius:6px;padding:2px 8px;font-size:11px;cursor:pointer;color:var(--text-muted);font-family:inherit;margin-left:6px;vertical-align:middle}
+.copy-btn:hover{color:var(--em2);border-color:var(--em2)}
+@media(max-width:768px){.wallet-grid{grid-template-columns:1fr!important}.wallet-sidebar{position:static}}
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="page-wrap">
   <div class="page-header">
@@ -9,9 +45,9 @@
   {% if wallet %}
   <!-- Balance cards -->
   <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:32px">
-    <div style="background:rgba(232,93,38,0.08);border:1px solid rgba(232,93,38,0.25);border-radius:var(--radius);padding:28px">
+    <div style="background:rgba(16,185,129,0.07);border:1px solid rgba(16,185,129,0.2);border-radius:var(--radius);padding:28px">
       <div style="font-size:13px;color:var(--text-muted);margin-bottom:8px">Доступный баланс</div>
-      <div style="font-size:36px;font-weight:800;color:var(--orange)">{{ wallet.balance | money }}</div>
+      <div style="font-size:36px;font-weight:800;color:var(--em2)">{{ wallet.balance | money }}</div>
     </div>
     <div style="background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius);padding:28px">
       <div style="font-size:13px;color:var(--text-muted);margin-bottom:8px">Зарезервировано</div>
@@ -23,78 +59,219 @@
     </div>
   </div>
 
-  <!-- Deposit form -->
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:32px">
-    <div style="background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius);padding:28px">
-      <h2 style="font-size:18px;font-weight:600;margin-bottom:20px">Пополнить баланс</h2>
+  <!-- Deposit + sidebar -->
+  <div class="wallet-grid" style="display:grid;grid-template-columns:1fr 300px;gap:24px;margin-bottom:32px;align-items:start">
+
+    <!-- Left: tabbed form -->
+    <div class="pay-card">
+      <h2 style="font-size:20px;font-weight:700;margin-bottom:6px">Пополнить баланс</h2>
+      <p style="font-size:14px;color:var(--text-muted);margin-bottom:24px">Выберите удобный способ пополнения</p>
+
+      <div class="pay-tabs">
+        <button type="button" class="pay-tab-btn active" onclick="switchTab('card',this)">💳 Карта</button>
+        <button type="button" class="pay-tab-btn" onclick="switchTab('qr',this)">📱 QR / СБП</button>
+        <button type="button" class="pay-tab-btn" onclick="switchTab('bank',this)">🏦 Перевод</button>
+      </div>
+
       <form method="post" action="/wallet/deposit">
-        <div class="form-group">
-          <label>Сумма (₽)</label>
-          <input type="number" name="amount" min="100" step="100" placeholder="10000" required>
+        <input type="hidden" name="method" id="methodInput" value="online">
+
+        <div class="pay-group">
+          <label class="pay-label">Сумма пополнения (₽)</label>
+          <input type="number" name="amount" id="amountInput" class="pay-input" min="100" step="100"
+                 placeholder="10 000" required oninput="onAmountInput(this.value)"
+                 style="font-size:24px;font-weight:700">
         </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px">
           {% for amt in [5000, 10000, 25000, 50000] %}
-          <button type="button" onclick="document.querySelector('[name=amount]').value={{ amt }}"
-            style="background:rgba(232,93,38,0.1);border:1px solid rgba(232,93,38,0.2);color:var(--orange2);padding:6px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-family:'Inter',sans-serif">
+          <button type="button" onclick="setAmount({{ amt }})"
+            style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.15);color:var(--em2);padding:6px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-family:inherit">
             {{ amt | money }}
           </button>
           {% endfor %}
         </div>
-        <button type="submit" class="btn-orange" style="width:100%;padding:12px">Пополнить</button>
+
+        <!-- CARD TAB -->
+        <div id="tab-card">
+          <div class="card-visual">
+            <div style="position:relative;z-index:1">
+              <div id="cardBrand" style="font-size:12px;color:rgba(255,255,255,0.55);letter-spacing:1px">💳 КАРТА</div>
+              <div class="card-num-preview" id="cardPreview">•••• •••• •••• ••••</div>
+              <div class="card-meta">
+                <div><div style="font-size:10px;text-transform:uppercase;margin-bottom:2px">Владелец</div><div id="namePreview" style="color:#fff;letter-spacing:1px">ИМЯ ВЛАДЕЛЬЦА</div></div>
+                <div style="text-align:right"><div style="font-size:10px;text-transform:uppercase;margin-bottom:2px">Срок</div><div id="expPreview" style="color:#fff">MM/YY</div></div>
+              </div>
+            </div>
+          </div>
+          <div class="pay-group">
+            <label class="pay-label">Номер карты</label>
+            <input type="text" id="cardNum" class="pay-input" placeholder="0000 0000 0000 0000" maxlength="19" autocomplete="cc-number" style="font-size:17px;letter-spacing:2px">
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+            <div class="pay-group"><label class="pay-label">Срок действия</label><input type="text" id="cardExp" class="pay-input" placeholder="MM/YY" maxlength="5" autocomplete="cc-exp" style="font-size:16px"></div>
+            <div class="pay-group"><label class="pay-label">CVV / CVC</label><input type="text" id="cardCvv" class="pay-input" placeholder="•••" maxlength="3" autocomplete="cc-csc" style="font-size:16px"></div>
+          </div>
+          <div class="pay-group">
+            <label class="pay-label">Имя на карте</label>
+            <input type="text" id="cardName" class="pay-input" placeholder="IVAN IVANOV" autocomplete="cc-name" style="text-transform:uppercase">
+          </div>
+        </div>
+
+        <!-- QR TAB -->
+        <div id="tab-qr" style="display:none">
+          <div class="qr-box">
+            <div style="background:#fff;border-radius:16px;display:inline-flex;align-items:center;justify-content:center;padding:12px;margin-bottom:16px">
+              <canvas id="qrCanvas"></canvas>
+            </div>
+            <p style="font-size:14px;color:var(--text-muted);margin-bottom:6px">Отсканируйте QR-код приложением банка</p>
+            <p style="font-size:12px;color:var(--text-dim)">Поддерживает СБП, Сбербанк, Тинькофф и другие банки</p>
+            <p id="qrAmountLabel" style="font-size:13px;color:#4ade80;margin-top:8px;font-weight:600"></p>
+          </div>
+        </div>
+
+        <!-- BANK TRANSFER TAB -->
+        <div id="tab-bank" style="display:none">
+          <div style="background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.2);border-radius:12px;padding:14px 18px;margin-bottom:18px;font-size:13px;color:#fbbf24">
+            ⚠️ Средства поступают в течение <strong>1–3 рабочих дней</strong> после перевода
+          </div>
+          <div class="bank-box">
+            <div class="bank-row"><span>Получатель</span><span>ООО «СтартХаб»</span></div>
+            <div class="bank-row"><span>Банк</span><span>ПАО Сбербанк</span></div>
+            <div class="bank-row"><span>Р/счёт</span><span>4070 2810 1234 0000 0001 <button type="button" class="copy-btn" onclick="copyText('40702810123400000001')">Копировать</button></span></div>
+            <div class="bank-row"><span>БИК</span><span>044525225 <button type="button" class="copy-btn" onclick="copyText('044525225')">Копировать</button></span></div>
+            <div class="bank-row"><span>ИНН</span><span>7712345678</span></div>
+            <div class="bank-row"><span>Назначение</span><span id="transferPurpose" style="color:#4ade80">Пополнение кошелька #{{ user.id }} <button type="button" class="copy-btn" onclick="copyText('Пополнение кошелька #{{ user.id }}')">Копировать</button></span></div>
+          </div>
+          <p style="font-size:12px;color:var(--text-dim);line-height:1.7">
+            После выполнения перевода нажмите «Пополнить» — менеджер получит уведомление и зачислит средства вручную.
+          </p>
+        </div>
+
+        <button type="submit" class="pay-submit" style="margin-top:16px">
+          ✅ Пополнить баланс
+        </button>
+        <p style="font-size:11px;color:var(--text-dim);text-align:center;margin-top:10px">Защищённое соединение · SSL / TLS</p>
       </form>
     </div>
 
-    <div style="background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius);padding:28px">
-      <h2 style="font-size:18px;font-weight:600;margin-bottom:20px">Информация</h2>
-      <div style="display:flex;flex-direction:column;gap:12px">
-        {% for label, val in [
-          ('Способы пополнения', 'Банковская карта, СБП'),
-          ('Комиссия', '0% на пополнение'),
-          ('Вывод', 'От 3 рабочих дней'),
-          ('Мин. пополнение', '₽ 100'),
-        ] %}
-        <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--card-border);font-size:14px">
-          <span style="color:var(--text-muted)">{{ label }}</span>
-          <span style="font-weight:500">{{ val }}</span>
-        </div>
-        {% endfor %}
+    <!-- Right: balance summary + info -->
+    <div>
+      <div class="wallet-sidebar">
+        <h3 style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:18px">Ваш баланс</h3>
+        <div class="summary-row"><span>Доступно</span><span style="font-weight:700;color:var(--em2)">{{ wallet.balance | money }}</span></div>
+        <div class="summary-row"><span>Зарезервировано</span><span style="color:#fbbf24">{{ wallet.reserved | money }}</span></div>
+        <div class="summary-row"><span>Всего пополнено</span><span style="color:#4ade80">{{ wallet.total_deposited | money }}</span></div>
+      </div>
+
+      <div style="background:var(--card-bg);border:1px solid var(--card-border);border-radius:16px;padding:20px;margin-top:16px">
+        <h4 style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:14px">Условия</h4>
+        <div class="info-row"><span style="color:var(--text-muted)">Комиссия</span><span>0%</span></div>
+        <div class="info-row"><span style="color:var(--text-muted)">Минимум</span><span>₽ 100</span></div>
+        <div class="info-row"><span style="color:var(--text-muted)">Вывод средств</span><span>3–5 рабочих дней</span></div>
+        <div class="info-row"><span style="color:var(--text-muted)">Карты</span><span>Visa / MC / Мир</span></div>
+        <div class="info-row"><span style="color:var(--text-muted)">СБП</span><span>Мгновенно</span></div>
       </div>
     </div>
   </div>
 
   <!-- Transactions -->
-  <div style="background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius);overflow:hidden">
-    <div style="padding:20px 24px;border-bottom:1px solid var(--card-border)">
-      <h2 style="font-size:18px;font-weight:600">История транзакций</h2>
+  <div style="background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:var(--radius);overflow:hidden;backdrop-filter:blur(20px)">
+
+    <div style="padding:20px 28px;border-bottom:1px solid var(--glass-border);display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <h2 style="font-size:17px;font-weight:700;letter-spacing:-.3px">История транзакций</h2>
+        {% if wallet.transactions %}
+        <p style="font-size:12px;color:var(--text-dim);margin-top:2px">{{ wallet.transactions|length }} операций</p>
+        {% endif %}
+      </div>
+      {% if wallet.transactions %}
+      <div style="display:flex;gap:6px">
+        <span style="padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;background:rgba(74,222,128,0.1);color:#4ade80;border:1px solid rgba(74,222,128,0.2)">
+          ↑ {{ wallet.transactions|selectattr('type','equalto','deposit')|list|length }} пополнений
+        </span>
+      </div>
+      {% endif %}
     </div>
+
     {% if wallet.transactions %}
-    <table class="admin-table">
-      <thead><tr><th>ID</th><th>Тип</th><th>Описание</th><th>Сумма</th><th>Статус</th><th>Дата</th></tr></thead>
-      <tbody>
-        {% for tx in wallet.transactions|reverse %}
-        <tr>
-          <td style="color:var(--text-dim)">#{{ tx.id }}</td>
-          <td style="font-size:13px">
-            {% if tx.type == 'deposit' %}💳 Пополнение
-            {% elif tx.type == 'withdraw' %}📤 Вывод
-            {% elif tx.type == 'fee' %}💼 Комиссия
-            {% else %}🤝 Сделка{% endif %}
-          </td>
-          <td style="font-size:13px;color:var(--text-muted)">{{ tx.description or '—' }}</td>
-          <td style="font-weight:600;{% if tx.type == 'deposit' %}color:#4ade80{% else %}color:#f87171{% endif %}">
-            {% if tx.type == 'deposit' %}+{% else %}−{% endif %}{{ tx.amount | money }}
-          </td>
-          <td><span class="deal-status {{ tx.status.value }}" style="font-size:11px">{{ tx.status.value }}</span></td>
-          <td style="font-size:12px;color:var(--text-dim)">{{ tx.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+    <div style="padding:8px 0">
+      {% for tx in wallet.transactions|reverse %}
+      {% set is_deposit = tx.type == 'deposit' %}
+      {% set icons = {'deposit': '💳', 'withdraw': '📤', 'fee': '💼', 'deal_payment': '🤝'} %}
+      {% set icon = icons.get(tx.type, '💱') %}
+
+      <div style="display:flex;align-items:center;gap:16px;padding:14px 28px;transition:background .15s;border-bottom:1px solid rgba(255,255,255,0.03)"
+           onmouseover="this.style.background='rgba(255,255,255,0.02)'"
+           onmouseout="this.style.background=''">
+
+        <!-- Иконка -->
+        <div style="width:42px;height:42px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:18px;
+          {% if is_deposit %}background:rgba(74,222,128,0.12);border:1px solid rgba(74,222,128,0.2)
+          {% elif tx.type == 'withdraw' %}background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.2)
+          {% elif tx.type == 'fee' %}background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.2)
+          {% else %}background:rgba(96,165,250,0.1);border:1px solid rgba(96,165,250,0.2){% endif %}">
+          {{ icon }}
+        </div>
+
+        <!-- Описание -->
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+            {% if is_deposit %}Пополнение баланса
+            {% elif tx.type == 'withdraw' %}Вывод средств
+            {% elif tx.type == 'fee' %}Комиссия
+            {% else %}Сделка{% endif %}
+          </div>
+          <div style="font-size:12px;color:var(--text-dim);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+            {{ tx.description or '—' }}
+          </div>
+        </div>
+
+        <!-- Статус -->
+        <div style="flex-shrink:0;text-align:center;display:none" class="tx-status-col">
+          <span style="padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;
+            {% if tx.status.value == 'approved' %}background:rgba(74,222,128,0.12);color:#4ade80;border:1px solid rgba(74,222,128,0.25)
+            {% elif tx.status.value == 'pending' %}background:rgba(251,191,36,0.12);color:#fbbf24;border:1px solid rgba(251,191,36,0.25)
+            {% else %}background:rgba(248,113,113,0.1);color:#f87171;border:1px solid rgba(248,113,113,0.25){% endif %}">
+            {% if tx.status.value == 'approved' %}Выполнено
+            {% elif tx.status.value == 'pending' %}В обработке
+            {% else %}Отклонено{% endif %}
+          </span>
+        </div>
+
+        <!-- Дата -->
+        <div style="flex-shrink:0;text-align:right;margin-left:8px">
+          <div style="font-size:11px;color:var(--text-dim)">{{ tx.created_at.strftime('%d.%m.%Y') }}</div>
+          <div style="font-size:10px;color:rgba(255,255,255,0.2);margin-top:1px">{{ tx.created_at.strftime('%H:%M') }}</div>
+        </div>
+
+        <!-- Сумма -->
+        <div style="flex-shrink:0;text-align:right;min-width:100px">
+          <div style="font-size:15px;font-weight:700;
+            {% if is_deposit %}color:#4ade80{% elif tx.type == 'fee' %}color:#fbbf24{% else %}color:#f87171{% endif %}">
+            {% if is_deposit %}+{% else %}−{% endif %}{{ tx.amount | money }}
+          </div>
+          <div style="margin-top:4px">
+            <span style="padding:2px 8px;border-radius:12px;font-size:10px;font-weight:600;
+              {% if tx.status.value == 'approved' %}background:rgba(74,222,128,0.1);color:#4ade80
+              {% elif tx.status.value == 'pending' %}background:rgba(251,191,36,0.1);color:#fbbf24
+              {% else %}background:rgba(248,113,113,0.08);color:#f87171{% endif %}">
+              {% if tx.status.value == 'approved' %}✓
+              {% elif tx.status.value == 'pending' %}⏳
+              {% else %}✗{% endif %}
+            </span>
+          </div>
+        </div>
+
+      </div>
+      {% endfor %}
+    </div>
+
     {% else %}
-    <div class="empty-state" style="padding:60px 20px">
-      <div class="e-icon">💳</div>
-      <h3>Транзакций пока нет</h3>
-      <p>Пополните баланс чтобы начать</p>
+    <div style="padding:64px 20px;text-align:center">
+      <div style="font-size:48px;margin-bottom:16px;opacity:.3">💳</div>
+      <div style="font-size:16px;font-weight:600;color:var(--text);margin-bottom:8px">Транзакций пока нет</div>
+      <div style="font-size:14px;color:var(--text-muted)">Пополните баланс чтобы начать</div>
     </div>
     {% endif %}
   </div>
@@ -107,4 +284,80 @@
   </div>
   {% endif %}
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+<script>
+var currentAmount = 0;
+
+function switchTab(tab, btn) {
+  ['card','qr','bank'].forEach(t => {
+    var el = document.getElementById('tab-'+t);
+    if (el) el.style.display = 'none';
+  });
+  document.getElementById('tab-'+tab).style.display = 'block';
+  var methodMap = {card:'online', qr:'qr', bank:'bank'};
+  document.getElementById('methodInput').value = methodMap[tab] || 'online';
+  document.querySelectorAll('.pay-tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (tab === 'qr') generateQR(currentAmount);
+}
+
+function setAmount(val) {
+  var inp = document.getElementById('amountInput');
+  inp.value = val;
+  onAmountInput(val);
+}
+
+function onAmountInput(val) {
+  currentAmount = parseFloat(val) || 0;
+  var active = document.querySelector('.pay-tab-btn.active');
+  if (active && active.textContent.includes('QR')) generateQR(currentAmount);
+}
+
+function generateQR(amount) {
+  var canvas = document.getElementById('qrCanvas');
+  if (!canvas || typeof QRCode === 'undefined') return;
+  var kopecks = Math.round((amount || 0) * 100);
+  var qrData = 'ST00012|Name=ООО «СтартХаб»|PersonalAcc=40702810123400000001|BankName=ПАО Сбербанк|BIC=044525225|Sum=' + kopecks + '|Purpose=Пополнение кошелька StartHub';
+  QRCode.toCanvas(canvas, qrData, {width:180, margin:1, color:{dark:'#000000',light:'#ffffff'}}, function(){});
+  var lbl = document.getElementById('qrAmountLabel');
+  if (lbl) lbl.textContent = amount > 0 ? 'Сумма: ₽ ' + amount.toLocaleString('ru-RU') : '';
+}
+
+function copyText(text) {
+  navigator.clipboard.writeText(text).then(function() {
+    var btns = document.querySelectorAll('.copy-btn');
+    btns.forEach(function(b){ if(b.onclick && b.onclick.toString().includes(text.replace(/'/g,"\\'"))) { b.textContent='✓'; setTimeout(function(){b.textContent='Копировать';},1500); } });
+  });
+}
+
+// Card preview
+var cardNum = document.getElementById('cardNum');
+var cardExp = document.getElementById('cardExp');
+var cardName = document.getElementById('cardName');
+
+cardNum && cardNum.addEventListener('input', function() {
+  var v = cardNum.value.replace(/\D/g,'').slice(0,16);
+  cardNum.value = v.replace(/(.{4})/g,'$1 ').trim();
+  var p = document.getElementById('cardPreview');
+  var b = document.getElementById('cardBrand');
+  if (p) { var d=v.padEnd(16,'•'); p.textContent=d.slice(0,4)+' '+d.slice(4,8)+' '+d.slice(8,12)+' '+d.slice(12,16); }
+  if (b) { b.textContent = v.startsWith('4')?'💳 VISA':/^(5[1-5]|2[2-7])/.test(v)?'💳 MASTERCARD':/^220[0-4]/.test(v)?'💳 МИР':'💳 КАРТА'; }
+});
+cardExp && cardExp.addEventListener('input', function() {
+  var v = cardExp.value.replace(/\D/g,'').slice(0,4);
+  if (v.length >= 3) v = v.slice(0,2)+'/'+v.slice(2);
+  cardExp.value = v;
+  var el = document.getElementById('expPreview');
+  if (el) el.textContent = cardExp.value || 'MM/YY';
+});
+document.getElementById('cardCvv') && document.getElementById('cardCvv').addEventListener('input', function(){ this.value=this.value.replace(/\D/g,'').slice(0,3); });
+cardName && cardName.addEventListener('input', function() {
+  cardName.value = cardName.value.toUpperCase();
+  var el = document.getElementById('namePreview');
+  if (el) el.textContent = cardName.value || 'ИМЯ ВЛАДЕЛЬЦА';
+});
+</script>
 {% endblock %}

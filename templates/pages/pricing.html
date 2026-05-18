@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 {% block title %}Тарифы — StartHub{% endblock %}
 {% block content %}
 <div style="text-align:center;padding:80px 60px 40px">
@@ -25,8 +25,8 @@
     </div>
 
     <div class="price-card featured">
-      <div style="font-size:24px;margin-bottom:12px;color:var(--orange)">🚀</div>
-      <div class="price-name" style="color:var(--orange)">Pro</div>
+      <div style="font-size:24px;margin-bottom:12px;color:var(--em2)">🚀</div>
+      <div class="price-name" style="color:var(--em2)">Pro</div>
       <div class="price-amount">₽ 14 990<span>/мес</span></div>
       <div class="price-period">Для активного роста</div>
       <ul class="price-features">
@@ -68,7 +68,7 @@
           <tr style="border-bottom:1px solid var(--card-border)">
             <th style="padding:16px 20px;text-align:left;font-size:13px;color:var(--text-dim);font-weight:600">Функция</th>
             <th style="padding:16px;text-align:center;font-size:14px;font-weight:600">Starter</th>
-            <th style="padding:16px;text-align:center;font-size:14px;font-weight:600;color:var(--orange)">Pro</th>
+            <th style="padding:16px;text-align:center;font-size:14px;font-weight:600;color:var(--em2)">Pro</th>
             <th style="padding:16px;text-align:center;font-size:14px;font-weight:600">Enterprise</th>
           </tr>
         </thead>
@@ -90,7 +90,7 @@
           <tr style="border-bottom:1px solid rgba(255,255,255,0.04)">
             <td style="padding:14px 20px;font-size:14px;color:var(--text-muted)">{{ feat }}</td>
             <td style="padding:14px;text-align:center;font-size:14px;{% if s == '✕' %}color:var(--text-dim){% elif s == '✓' %}color:#4ade80{% else %}color:var(--text){% endif %}">{{ s }}</td>
-            <td style="padding:14px;text-align:center;font-size:14px;{% if p == '✕' %}color:var(--text-dim){% elif p == '✓' %}color:#4ade80{% else %}color:var(--orange){% endif %}">{{ p }}</td>
+            <td style="padding:14px;text-align:center;font-size:14px;{% if p == '✕' %}color:var(--text-dim){% elif p == '✓' %}color:#4ade80{% else %}color:var(--em2){% endif %}">{{ p }}</td>
             <td style="padding:14px;text-align:center;font-size:14px;{% if e == '✕' %}color:var(--text-dim){% elif e == '✓' %}color:#4ade80{% else %}color:var(--text){% endif %}">{{ e }}</td>
           </tr>
           {% endfor %}

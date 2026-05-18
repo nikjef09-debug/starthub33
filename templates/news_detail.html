@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}{{ post.title }} — StartHub{% endblock %}
+{% block head %}
+<style>
+.article-wrap{max-width:760px;margin:0 auto;padding:56px 24px 80px}
+.article-back{display:inline-flex;align-items:center;gap:6px;color:var(--text-muted);font-size:13.5px;margin-bottom:36px;transition:color .2s;text-decoration:none}
+.article-back:hover{color:var(--em2)}
+.article-hero{width:100%;max-height:460px;object-fit:cover;border-radius:var(--radius);margin-bottom:40px;display:block}
+.article-meta{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:22px}
+.article-cat{font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--em2);background:var(--em-dim);padding:4px 10px;border-radius:100px;border:1px solid var(--em-border)}
+.article-date{font-size:13px;color:var(--text-dim)}
+.article-views{font-size:13px;color:var(--text-dim);display:inline-flex;align-items:center;gap:5px}
+.article-title{font-size:clamp(22px,3.5vw,38px);font-weight:800;line-height:1.25;margin-bottom:28px;color:var(--text)}
+.article-body{font-size:16px;line-height:1.85;color:rgba(236,253,245,.72)}
+.article-body p{margin-bottom:1.3em}
+.article-body p:last-child{margin-bottom:0}
+.article-divider{border:none;border-top:1px solid var(--card-border);margin:44px 0}
+.article-author{display:flex;align-items:center;gap:14px}
+.article-author-av{width:46px;height:46px;border-radius:50%;overflow:hidden;background:var(--em-dim);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:var(--em2);flex-shrink:0}
+.article-author-av img{width:100%;height:100%;object-fit:cover}
+.article-author-name{font-weight:600;font-size:14px}
+.article-author-label{font-size:12px;color:var(--text-dim)}
+</style>
+{% endblock %}
+{% block content %}
+<div class="article-wrap">
+  <a href="/{% if post.is_blog %}blog{% else %}news{% endif %}" class="article-back">
+    ← Назад к {% if post.is_blog %}блогу{% else %}новостям{% endif %}
+  </a>
+
+  {% if post.cover %}
+  <img src="{{ post.cover }}" alt="{{ post.title }}" class="article-hero reveal">
+  {% endif %}
+
+  <div class="article-meta">
+    {% if post.category %}<span class="article-cat">{{ post.category }}</span>{% endif %}
+    <span class="article-date">{{ post.created_at.strftime('%d %B %Y') }}</span>
+    <span class="article-views">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      {{ post.views_count or 0 }}
+    </span>
+    {% set w = (post.body or '')|wordcount %}
+    {% set rm = (w // 200) if (w // 200) >= 1 else 1 %}
+    <span class="article-date">{{ rm }} мин чтения</span>
+  </div>
+
+  <h1 class="article-title reveal">{{ post.title }}</h1>
+
+  <div class="article-body reveal">
+    {% if post.body %}
+      {% for para in post.body.split('\n\n') if para.strip() %}
+        <p>{{ para | e | replace('\n', '<br>') | safe }}</p>
+      {% else %}
+        <p style="color:var(--text-dim)">Содержимое статьи пока недоступно.</p>
+      {% endfor %}
+    {% else %}
+      <p style="color:var(--text-dim)">Содержимое статьи пока недоступно.</p>
+    {% endif %}
+  </div>
+
+  {% if post.author %}
+  <hr class="article-divider">
+  <div class="article-author">
+    <div class="article-author-av">
+      {% if post.author.avatar %}
+        <img src="{{ post.author.avatar }}" alt="">
+      {% else %}
+        {{ (post.author.full_name or post.author.email or 'A')[0] | upper }}
+      {% endif %}
+    </div>
+    <div>
+      <div class="article-author-name">{{ post.author.full_name or post.author.email }}</div>
+      <div class="article-author-label">Автор · команда StartHub</div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

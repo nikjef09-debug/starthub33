@@ -35,11 +35,16 @@ class User(Base):
     telegram        = Column(String(64))
     website         = Column(String(256))
     location        = Column(String(128))
-    is_active       = Column(Boolean, default=True)
-    is_verified     = Column(Boolean, default=False)
-    is_banned       = Column(Boolean, default=False)
-    ban_reason      = Column(Text)
-    last_seen       = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    is_active        = Column(Boolean, default=True)
+    is_verified      = Column(Boolean, default=False)
+    is_banned        = Column(Boolean, default=False)
+    ban_reason       = Column(Text)
+    custom_role_name = Column(String(64), nullable=True)
+    email_consent    = Column(Boolean, default=False)
+    email_verified   = Column(Boolean, default=False)
+    totp_secret      = Column(String(32), nullable=True)
+    totp_enabled     = Column(Boolean, default=False)
+    last_seen        = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     created_at      = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at      = Column(DateTime, default=lambda: datetime.now(timezone.utc),
                              onupdate=lambda: datetime.now(timezone.utc))
@@ -54,6 +59,7 @@ class User(Base):
     tickets           = relationship("SupportTicket", back_populates="user", foreign_keys="SupportTicket.user_id")
     wallet            = relationship("Wallet", back_populates="user", uselist=False, cascade="all, delete-orphan")
     activity_logs     = relationship("ActivityLog", back_populates="user", cascade="all, delete-orphan")
+    subscription      = relationship("Subscription", back_populates="user", uselist=False, cascade="all, delete-orphan")
 
 
 # ── Password reset token ───────────────────────────────────────────────────────

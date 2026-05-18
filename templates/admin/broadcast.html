@@ -1,0 +1,280 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Рассылка — Admin{% endblock %}
+
+{% block admin_head %}
+/* ── Поля формы ── */
+.bc-input{
+  width:100%;padding:11px 16px;
+  background:rgba(16,185,129,0.04);
+  border:1px solid var(--card-border);
+  border-radius:11px;
+  color:var(--text);
+  font-size:14px;font-family:'DM Sans',system-ui,sans-serif;
+  outline:none;transition:border-color .2s,background .2s,box-shadow .2s;
+  box-sizing:border-box;
+}
+.bc-input:hover{border-color:var(--em-border);background:rgba(16,185,129,0.06)}
+.bc-input:focus{border-color:var(--em-border-strong);background:rgba(16,185,129,0.08);box-shadow:0 0 0 3px var(--em-dim)}
+.bc-input::placeholder{color:var(--text-dim)}
+textarea.bc-input{resize:vertical;min-height:220px;line-height:1.6}
+
+.bc-label{
+  display:block;font-size:11px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.8px;
+  color:var(--text-dim);margin-bottom:8px;
+}
+.bc-group{margin-bottom:20px}
+
+/* ── Вкладки источника ── */
+.source-tabs{
+  display:flex;gap:0;
+  border:1px solid var(--card-border);border-radius:11px;overflow:hidden;
+}
+.source-tab{
+  flex:1;padding:10px 14px;text-align:center;
+  font-size:13px;font-weight:600;cursor:pointer;
+  background:transparent;border:none;
+  color:var(--text-muted);transition:.18s;font-family:inherit;
+}
+.source-tab:not(:last-child){border-right:1px solid var(--card-border)}
+.source-tab.active{background:var(--em-dim);color:var(--em2)}
+.source-tab:hover:not(.active){background:rgba(255,255,255,0.03);color:var(--text)}
+
+/* ── Аудитория пилюли ── */
+.aud-pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.aud-pill{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:7px 14px;border-radius:20px;font-size:13px;font-weight:600;
+}
+.aud-pill.total{background:var(--em-dim);color:var(--em2);border:1px solid var(--em-border)}
+.aud-pill.role{background:rgba(255,255,255,0.04);color:var(--text-muted);border:1px solid var(--card-border);font-size:12px}
+
+/* ── Строка кампании ── */
+.camp-row{
+  display:grid;grid-template-columns:1fr 90px 90px;gap:10px;
+  align-items:center;padding:12px 0;
+  border-bottom:1px solid var(--card-border);font-size:13px;
+}
+.camp-row:last-child{border-bottom:none}
+
+/* ── Счётчик получателей ── */
+.recip-count{
+  display:inline-flex;align-items:center;gap:6px;
+  margin-top:8px;padding:6px 12px;
+  background:var(--em-dim2);border:1px solid var(--em-border);
+  border-radius:8px;font-size:12px;color:var(--em2);font-weight:600;
+}
+
+/* ── Кнопка отправки ── */
+.send-btn{
+  width:100%;padding:14px;border-radius:12px;
+  background:linear-gradient(135deg,var(--em),var(--em3));
+  border:none;color:#fff;font-size:15px;font-weight:700;
+  cursor:pointer;font-family:inherit;transition:opacity .2s,transform .15s;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+}
+.send-btn:hover{opacity:.9;transform:translateY(-1px)}
+.send-btn:active{transform:translateY(0)}
+{% endblock %}
+
+{% block admin_content %}
+<div class="page-h">
+  <div class="page-h-left">
+    <h1>Email-рассылка</h1>
+    <p>Письма получают только пользователи, давшие согласие на рассылку</p>
+  </div>
+</div>
+
+{% if request.query_params.get('sent') %}
+<div style="margin-bottom:16px;padding:14px 20px;background:var(--em-dim);border:1px solid var(--em-border);border-radius:12px;color:var(--em2);font-size:14px;font-weight:600">
+  ✅ Рассылка успешно отправлена!
+</div>
+{% endif %}
+{% if request.query_params.get('error') == 'empty' %}
+<div style="margin-bottom:16px;padding:14px 20px;background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.25);border-radius:12px;color:#f87171;font-size:14px">
+  ⚠️ Заполните тему и содержимое письма
+</div>
+{% endif %}
+
+<!-- Аудитория -->
+<div class="card reveal" style="margin-bottom:16px">
+  <div class="card-title">📊 Аудитория с согласием на рассылку</div>
+  <div class="aud-pills">
+    <span class="aud-pill total">✉️ Всего: <strong>{{ consent_total }}</strong></span>
+    <span class="aud-pill role">💼 Инвесторы: {{ consent_by_role.get('buyer', 0) }}</span>
+    <span class="aud-pill role">🚀 Авторы: {{ consent_by_role.get('author', 0) }}</span>
+    <span class="aud-pill role">🎯 Менеджеры: {{ consent_by_role.get('manager', 0) }}</span>
+    <span class="aud-pill role">💻 Разработчики: {{ consent_by_role.get('developer', 0) }}</span>
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 340px;gap:16px;align-items:start">
+
+  <!-- Форма -->
+  <div class="card reveal">
+    <div class="card-title" style="margin-bottom:22px">📧 Новая рассылка</div>
+    <form method="post" action="/admin/broadcast/send" id="broadcast-form">
+
+      <!-- Кому -->
+      <div class="bc-group">
+        <label class="bc-label">Кому отправить</label>
+        <select name="target_role" id="target-role" onchange="updateCount()" class="bc-input" style="padding-right:40px;appearance:none;-webkit-appearance:none;background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='rgba(16,185,129,0.7)' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E\");background-repeat:no-repeat;background-position:right 14px center">
+          <option value="all">📬 Всем (с согласием)</option>
+          <option value="buyer">💼 Инвесторам (buyer)</option>
+          <option value="author">🚀 Авторам стартапов (author)</option>
+          <option value="manager">🎯 Менеджерам</option>
+          <option value="developer">💻 Разработчикам</option>
+        </select>
+        <div class="recip-count" id="recipient-count">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Получателей: {{ consent_total }}
+        </div>
+      </div>
+
+      <!-- Источник -->
+      <div class="bc-group">
+        <label class="bc-label">Источник контента</label>
+        <div class="source-tabs">
+          <button type="button" class="source-tab active" onclick="setSource('manual',this)">✏️ Написать вручную</button>
+          <button type="button" class="source-tab" onclick="setSource('news',this)">📰 Из новостей / блога</button>
+        </div>
+      </div>
+
+      <!-- Выбор новости -->
+      <div id="news-picker" style="display:none" class="bc-group">
+        <label class="bc-label">Выберите публикацию</label>
+        <select id="news-select" onchange="fillFromNews()" class="bc-input" style="padding-right:40px;appearance:none;-webkit-appearance:none;background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='rgba(16,185,129,0.7)' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E\");background-repeat:no-repeat;background-position:right 14px center">
+          <option value="">— выберите публикацию —</option>
+          {% for post in news_posts %}
+          <option value="{{ post.id }}"
+                  data-title="{{ post.title | e }}"
+                  data-excerpt="{{ (post.excerpt or '') | e }}"
+                  data-body="{{ (post.body or '') | e }}">
+            {% if post.is_blog %}📝{% else %}📰{% endif %} {{ post.title[:70] }}{% if post.title|length > 70 %}…{% endif %}
+          </option>
+          {% endfor %}
+        </select>
+        <input type="hidden" name="news_post_id" id="news-post-id" value="">
+      </div>
+
+      <!-- Тема -->
+      <div class="bc-group">
+        <label class="bc-label">Тема письма</label>
+        <input type="text" name="subject" id="subject-field" class="bc-input"
+               placeholder="Важное обновление StartHub" required>
+      </div>
+
+      <!-- Тело -->
+      <div class="bc-group">
+        <label class="bc-label">
+          Содержимое письма
+          <span style="font-size:10px;color:var(--text-dim);font-weight:400;text-transform:none;margin-left:6px">поддерживается HTML</span>
+        </label>
+        <textarea name="body_html" id="body-field" class="bc-input"
+                  placeholder="<p>Дорогой пользователь,</p>&#10;<p>Рады сообщить вам...</p>"
+                  required></textarea>
+      </div>
+
+      <button type="submit" class="send-btn"
+              onclick="return confirm('Отправить рассылку? Письма получат только пользователи с согласием.')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        Отправить рассылку
+      </button>
+    </form>
+  </div>
+
+  <!-- Правая колонка -->
+  <div style="display:flex;flex-direction:column;gap:14px">
+
+    <!-- Инфо -->
+    <div class="card reveal">
+      <div class="card-title">ℹ️ Как работает</div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        {% for text in [
+          ('✉️', 'Письма получают только пользователи с галочкой «Согласен на рассылку»'),
+          ('✏️', 'Можно написать вручную или взять статью из новостей/блога'),
+          ('⚡', 'Отправка происходит в фоне — страница не зависает'),
+          ('🎯', 'Можно выбрать конкретную роль получателей'),
+          ('📋', 'История всех рассылок сохраняется'),
+          ('🔧', 'Поддерживается HTML-форматирование'),
+        ] %}
+        <div style="display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--text-muted);line-height:1.5">
+          <span style="flex-shrink:0">{{ text[0] }}</span>
+          <span>{{ text[1] }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- История -->
+    <div class="card reveal" style="transition-delay:.05s">
+      <div class="card-title">
+        📋 История рассылок
+        {% if campaigns %}<span style="font-size:12px;color:var(--text-dim);font-weight:400">{{ campaigns|length }}</span>{% endif %}
+      </div>
+      {% if campaigns %}
+        {% for c in campaigns %}
+        <div class="camp-row">
+          <div style="min-width:0">
+            <div style="font-weight:600;font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+              {{ c.subject[:50] }}{% if c.subject|length > 50 %}…{% endif %}
+            </div>
+            <div style="color:var(--text-dim);font-size:11px;margin-top:3px">
+              {{ c.target_role }} · {{ c.created_at.strftime('%d.%m %H:%M') }}
+            </div>
+          </div>
+          <span style="color:var(--text-muted);white-space:nowrap;font-size:12px">{{ c.sent_count }} писем</span>
+          <span style="padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap;
+            {% if c.status == 'done' %}background:var(--em-dim);color:var(--em2);border:1px solid var(--em-border)
+            {% else %}background:rgba(251,191,36,0.12);color:#fbbf24;border:1px solid rgba(251,191,36,0.25){% endif %}">
+            {{ 'отправлено' if c.status == 'done' else c.status }}
+          </span>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div style="text-align:center;padding:28px 0;color:var(--text-dim);font-size:13px">
+          <div style="font-size:28px;margin-bottom:10px;opacity:.4">📭</div>
+          Рассылок ещё не было
+        </div>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+
+<script>
+var consentByRole = {{ consent_by_role | tojson }};
+consentByRole['all'] = {{ consent_total }};
+
+function updateCount(){
+  var role = document.getElementById('target-role').value;
+  var cnt = consentByRole[role] !== undefined ? consentByRole[role] : '?';
+  document.getElementById('recipient-count').innerHTML =
+    '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> Получателей: ' + cnt;
+}
+
+function setSource(type, btn){
+  document.querySelectorAll('.source-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('news-picker').style.display = type === 'news' ? '' : 'none';
+  if(type === 'manual'){
+    document.getElementById('news-post-id').value = '';
+    document.getElementById('news-select').value = '';
+  }
+}
+
+function fillFromNews(){
+  var sel = document.getElementById('news-select');
+  var opt = sel.options[sel.selectedIndex];
+  if(!opt.value){ document.getElementById('news-post-id').value=''; return; }
+  document.getElementById('news-post-id').value = opt.value;
+  document.getElementById('subject-field').value = opt.dataset.title || '';
+  var excerpt = opt.dataset.excerpt || '';
+  var body    = opt.dataset.body    || '';
+  document.getElementById('body-field').value =
+    '<h2>' + (opt.dataset.title||'') + '</h2>' +
+    (excerpt ? '<p>' + excerpt + '</p><hr>' : '') +
+    body;
+}
+</script>
+{% endblock %}

@@ -1,0 +1,291 @@
+{% extends "base.html" %}
+{% block title %}Подписка — StartHub{% endblock %}
+
+{% block head %}
+<style>
+.sub-page{max-width:1100px;margin:40px auto;padding:0 20px}
+.sub-header{text-align:center;margin-bottom:48px}
+.sub-header h1{font-size:36px;font-weight:800;margin-bottom:10px;letter-spacing:-1px}
+.sub-header p{font-size:16px;color:var(--text-muted)}
+
+/* Current plan banner */
+.current-plan-banner{
+  background:linear-gradient(135deg,rgba(16,185,129,0.1),rgba(5,150,105,0.05));
+  border:1px solid rgba(16,185,129,0.25);
+  border-radius:20px;padding:28px 32px;margin-bottom:40px;
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;
+}
+.cpb-left{display:flex;align-items:center;gap:16px}
+.cpb-icon{font-size:36px}
+.cpb-name{font-size:22px;font-weight:800;color:#4ade80;letter-spacing:-0.5px}
+.cpb-meta{font-size:13px;color:var(--text-muted);margin-top:2px}
+.cpb-right{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.cpb-badge{padding:6px 16px;border-radius:100px;font-size:13px;font-weight:600;background:rgba(74,222,128,0.15);color:#4ade80;border:1px solid rgba(74,222,128,0.3)}
+.cpb-badge.expired{background:rgba(239,68,68,0.12);color:#f87171;border-color:rgba(239,68,68,0.3)}
+
+/* Alerts */
+.alert{padding:14px 20px;border-radius:14px;font-size:14px;margin-bottom:24px}
+.alert-success{background:rgba(74,222,128,0.1);border:1px solid rgba(74,222,128,0.25);color:#4ade80}
+.alert-error{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);color:#f87171}
+.alert-warn{background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.25);color:#fbbf24}
+
+/* Plans grid */
+.plans-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:40px}
+.plan-card{
+  background:var(--glass-bg);border:1px solid var(--card-border);
+  border-radius:20px;padding:28px;position:relative;
+  transition:border-color .2s,transform .2s;
+  display:flex;flex-direction:column;
+}
+.plan-card:hover{border-color:rgba(16,185,129,0.3);transform:translateY(-2px)}
+.plan-card.current{border-color:rgba(16,185,129,0.5);background:rgba(16,185,129,0.05)}
+.plan-card.popular{border-color:rgba(16,185,129,0.4)}
+.popular-badge{
+  position:absolute;top:-12px;left:50%;transform:translateX(-50%);
+  background:linear-gradient(135deg,#22c55e,#16a34a);
+  color:#fff;font-size:11px;font-weight:700;padding:4px 16px;
+  border-radius:100px;white-space:nowrap;letter-spacing:0.5px;
+}
+.plan-emoji{font-size:32px;margin-bottom:12px}
+.plan-name{font-size:15px;font-weight:700;color:var(--text-muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:1px}
+.plan-price{font-size:36px;font-weight:800;letter-spacing:-1px;margin-bottom:2px}
+.plan-price span{font-size:15px;font-weight:400;color:var(--text-muted)}
+.plan-desc{font-size:13px;color:var(--text-dim);margin-bottom:20px}
+.plan-features{list-style:none;padding:0;margin:0 0 24px;flex:1}
+.plan-features li{
+  font-size:13.5px;color:var(--text-muted);padding:6px 0;
+  display:flex;align-items:center;gap:8px;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+}
+.plan-features li:last-child{border:none}
+.plan-features li .ck{color:#4ade80;font-weight:700;flex-shrink:0}
+.plan-features li .nx{color:rgba(255,255,255,0.2);flex-shrink:0}
+.plan-btn{
+  display:block;text-align:center;padding:13px;border-radius:12px;
+  font-size:14px;font-weight:700;cursor:pointer;border:none;
+  font-family:inherit;transition:opacity .2s,transform .15s;
+  text-decoration:none;
+}
+.plan-btn:hover{opacity:.9;transform:translateY(-1px)}
+.plan-btn-primary{background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff}
+.plan-btn-outline{background:rgba(255,255,255,0.05);color:var(--text);border:1px solid var(--card-border)}
+.plan-btn-current{background:rgba(74,222,128,0.1);color:#4ade80;border:1px solid rgba(74,222,128,0.3);cursor:default}
+
+/* Wallet warning */
+.wallet-row{display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.03);border:1px solid var(--card-border);border-radius:14px;padding:16px 24px;margin-bottom:32px}
+.wallet-balance{font-size:22px;font-weight:800;color:#4ade80}
+.wallet-label{font-size:13px;color:var(--text-muted)}
+
+/* Limits table */
+.limits-card{background:var(--glass-bg);border:1px solid var(--card-border);border-radius:20px;padding:28px;margin-bottom:32px}
+.limits-card h3{font-size:16px;font-weight:700;margin-bottom:20px}
+.limits-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:14px}
+.limits-row:last-child{border:none}
+.limits-row span:first-child{color:var(--text-muted)}
+.limits-val{font-weight:700;color:var(--text)}
+.limits-val.ok{color:#4ade80}
+.limits-val.inf{color:#a78bfa}
+
+@media(max-width:900px){.plans-grid{grid-template-columns:1fr}}
+@media(max-width:600px){.current-plan-banner{flex-direction:column}.cpb-right{width:100%}}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="sub-page">
+  <div class="sub-header">
+    <h1>Управление подпиской</h1>
+    <p>Выберите тариф и оплатите с баланса кошелька</p>
+  </div>
+
+  <!-- Alerts -->
+  {% set err = request.query_params.get('error') %}
+  {% set ok  = request.query_params.get('success') %}
+  {% set can = request.query_params.get('cancelled') %}
+  {% if ok %}
+  <div class="alert alert-success">✅ Тариф успешно активирован! Наслаждайтесь новыми возможностями.</div>
+  {% endif %}
+  {% if can %}
+  <div class="alert alert-warn">⚠️ Автопродление отключено. Подписка действует до истечения срока.</div>
+  {% endif %}
+  {% if err == 'insufficient' %}
+  <div class="alert alert-error">
+    ❌ Недостаточно средств. Нужно ₽ {{ request.query_params.get('need','?') | int | format_number }},
+    на балансе ₽ {{ request.query_params.get('have','0') | int | format_number }}.
+    <a href="/wallet" style="color:#f87171;font-weight:700;margin-left:8px">Пополнить →</a>
+  </div>
+  {% elif err == 'no_wallet' %}
+  <div class="alert alert-error">❌ Кошелёк не найден. <a href="/wallet" style="color:#f87171">Открыть кошелёк →</a></div>
+  {% endif %}
+
+  <!-- Current plan -->
+  <div class="current-plan-banner">
+    <div class="cpb-left">
+      <div class="cpb-icon">{{ current_plan.emoji }}</div>
+      <div>
+        <div class="cpb-name">{{ current_plan.label }}</div>
+        <div class="cpb-meta">
+          {% if sub.plan == 'free' %}Бесплатный тариф
+          {% elif sub.expires_at %}
+            {% if sub.is_expired %}Истёк {{ sub.expires_at.strftime('%d.%m.%Y') }}
+            {% else %}Активен до {{ sub.expires_at.strftime('%d.%m.%Y') }}{% endif %}
+          {% else %}Активна{% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="cpb-right">
+      {% if sub.is_expired %}
+        <span class="cpb-badge expired">Истёк</span>
+      {% elif sub.plan != 'free' %}
+        <span class="cpb-badge">✓ Активна</span>
+        {% if sub.auto_renew %}
+        <form method="post" action="/subscription/cancel">
+          <button type="submit" style="background:none;border:1px solid rgba(239,68,68,0.3);color:#f87171;padding:6px 14px;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit">Отменить продление</button>
+        </form>
+        {% else %}
+        <span style="font-size:12px;color:var(--text-dim)">Продление отключено</span>
+        {% endif %}
+      {% endif %}
+      <a href="/wallet" style="font-size:13px;color:#34d399">Кошелёк →</a>
+    </div>
+  </div>
+
+  <!-- Wallet balance -->
+  {% if wallet %}
+  <div class="wallet-row">
+    <div>
+      <div class="wallet-label">Баланс кошелька</div>
+      <div class="wallet-balance">₽ {{ wallet.balance | int | format_number }}</div>
+    </div>
+    <a href="/wallet" style="padding:10px 20px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.25);border-radius:12px;color:#4ade80;font-size:14px;font-weight:600;text-decoration:none">Пополнить</a>
+  </div>
+  {% endif %}
+
+  <!-- Current limits -->
+  <div class="limits-card">
+    <h3>📊 Ваши текущие лимиты</h3>
+    <div class="limits-row">
+      <span>Стартапов в каталоге</span>
+      <span class="limits-val {% if current_plan.max_startups >= 999 %}inf{% else %}ok{% endif %}">
+        {% if current_plan.max_startups >= 999 %}∞{% else %}{{ current_plan.max_startups }}{% endif %}
+      </span>
+    </div>
+    <div class="limits-row">
+      <span>Активных сделок</span>
+      <span class="limits-val {% if current_plan.max_deals >= 999 %}inf{% else %}ok{% endif %}">
+        {% if current_plan.max_deals >= 999 %}∞{% else %}{{ current_plan.max_deals }}{% endif %}
+      </span>
+    </div>
+    <div class="limits-row">
+      <span>Документов на сделку</span>
+      <span class="limits-val {% if current_plan.max_documents >= 999 %}inf{% else %}ok{% endif %}">
+        {% if current_plan.max_documents >= 999 %}∞{% else %}{{ current_plan.max_documents }}{% endif %}
+      </span>
+    </div>
+    <div class="limits-row">
+      <span>Приоритет в каталоге</span>
+      <span class="limits-val">{% if current_plan.priority_catalog %}<span style="color:#4ade80">✓ Да</span>{% else %}<span style="color:rgba(255,255,255,0.2)">✗ Нет</span>{% endif %}</span>
+    </div>
+    <div class="limits-row">
+      <span>@manager в чате</span>
+      <span class="limits-val">{% if current_plan.manager_in_chat %}<span style="color:#4ade80">✓ Да</span>{% else %}<span style="color:rgba(255,255,255,0.2)">✗ Нет</span>{% endif %}</span>
+    </div>
+    <div class="limits-row">
+      <span>Аналитика просмотров</span>
+      <span class="limits-val">{% if current_plan.analytics %}<span style="color:#4ade80">✓ Да</span>{% else %}<span style="color:rgba(255,255,255,0.2)">✗ Нет</span>{% endif %}</span>
+    </div>
+  </div>
+
+  <!-- Plans -->
+  <h2 style="font-size:22px;font-weight:700;margin-bottom:24px">Выберите тариф</h2>
+  <div class="plans-grid">
+
+    {% for plan_key, plan in plans.items() %}
+    {% set is_current = (sub.plan == plan_key and not sub.is_expired) %}
+    {% set can_afford = (wallet and wallet.balance >= plan.price) or plan.price == 0 %}
+    <div class="plan-card {% if is_current %}current{% elif plan_key == 'pro' %}popular{% endif %}">
+      {% if plan_key == 'pro' %}<div class="popular-badge">⭐ Популярный</div>{% endif %}
+      {% if is_current %}<div class="popular-badge" style="background:rgba(74,222,128,0.2);color:#4ade80;border:1px solid rgba(74,222,128,0.4)">✓ Текущий</div>{% endif %}
+
+      <div class="plan-emoji">{{ plan.emoji }}</div>
+      <div class="plan-name">{{ plan.label }}</div>
+      <div class="plan-price">
+        {% if plan.price == 0 %}Бесплатно
+        {% else %}₽ {{ plan.price | int | format_number }}<span>/мес</span>{% endif %}
+      </div>
+      <div class="plan-desc">{{ plan.description }}</div>
+
+      <ul class="plan-features">
+        <li>
+          <span class="ck">✓</span>
+          {% if plan.max_startups >= 999 %}Неограниченно стартапов
+          {% elif plan.max_startups == 1 %}1 стартап в каталоге
+          {% else %}До {{ plan.max_startups }} стартапов{% endif %}
+        </li>
+        <li>
+          <span class="ck">✓</span>
+          {% if plan.max_deals >= 999 %}Неограниченные сделки
+          {% else %}До {{ plan.max_deals }} активных сделок{% endif %}
+        </li>
+        <li>
+          <span class="ck">✓</span>
+          {% if plan.max_documents >= 999 %}Без лимита документов
+          {% else %}До {{ plan.max_documents }} документов{% endif %}
+        </li>
+        <li>
+          {% if plan.priority_catalog %}<span class="ck">✓</span>{% else %}<span class="nx">✗</span>{% endif %}
+          <span {% if not plan.priority_catalog %}style="opacity:.4"{% endif %}>Приоритет в каталоге</span>
+        </li>
+        <li>
+          {% if plan.manager_in_chat %}<span class="ck">✓</span>{% else %}<span class="nx">✗</span>{% endif %}
+          <span {% if not plan.manager_in_chat %}style="opacity:.4"{% endif %}>@manager в чате</span>
+        </li>
+        <li>
+          {% if plan.analytics %}<span class="ck">✓</span>{% else %}<span class="nx">✗</span>{% endif %}
+          <span {% if not plan.analytics %}style="opacity:.4"{% endif %}>Аналитика просмотров</span>
+        </li>
+        {% if plan.dedicated_manager %}
+        <li><span class="ck">✓</span>Выделенный менеджер</li>
+        {% endif %}
+        {% if plan.white_label %}
+        <li><span class="ck">✓</span>Белый лейбл</li>
+        {% endif %}
+        {% if plan.api_access %}
+        <li><span class="ck">✓</span>API доступ</li>
+        {% endif %}
+        {% if plan.support_24_7 %}
+        <li><span class="ck">✓</span>Поддержка 24/7</li>
+        {% endif %}
+      </ul>
+
+      {% if is_current %}
+        <div class="plan-btn plan-btn-current">✓ Текущий план</div>
+      {% elif plan.price == 0 %}
+        <form method="post" action="/subscription/buy">
+          <input type="hidden" name="plan_name" value="{{ plan_key }}">
+          <button type="submit" class="plan-btn plan-btn-outline" style="width:100%">Перейти на Free</button>
+        </form>
+      {% else %}
+        <form method="post" action="/subscription/buy">
+          <input type="hidden" name="plan_name" value="{{ plan_key }}">
+          <button type="submit" class="plan-btn {% if can_afford %}plan-btn-primary{% else %}plan-btn-outline{% endif %}" style="width:100%"
+            {% if not can_afford %}title="Недостаточно средств. Пополните кошелёк"{% endif %}>
+            {% if not can_afford %}💳 Пополнить кошелёк{% else %}Выбрать {{ plan.label }}{% endif %}
+          </button>
+        </form>
+        {% if not can_afford %}
+        <div style="text-align:center;margin-top:8px;font-size:12px;color:var(--text-dim)">
+          Нужно ещё ₽ {{ (plan.price - (wallet.balance if wallet else 0)) | int | format_number }}
+        </div>
+        {% endif %}
+      {% endif %}
+    </div>
+    {% endfor %}
+
+  </div>
+
+  <p style="text-align:center;font-size:13px;color:var(--text-dim);margin-bottom:40px">
+    Оплата списывается с баланса кошелька · Подписка на 30 дней · Отмена в любой момент
+  </p>
+</div>
+{% endblock %}

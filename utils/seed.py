@@ -1,3 +1,4 @@
+import json
 import uuid
 from datetime import datetime, timezone
 
@@ -12,8 +13,26 @@ from models.enums import (
 from models.user import User, Wallet, Transaction, ActivityLog
 from models.startup import Tag, Startup
 from models.deal import Deal, Message
-from models.support import SupportTicket, Notification, NewsPost, Review
+from models.support import SupportTicket, Notification, NewsPost, Review, RoleConfig, DEFAULT_ROLE_CONFIGS
 from utils.helpers import slugify
+
+
+async def init_role_configs(db: AsyncSession) -> None:
+    """Создаёт записи RoleConfig для всех основных ролей, если их ещё нет."""
+    for role_name, defaults in DEFAULT_ROLE_CONFIGS.items():
+        exists = (await db.execute(
+            select(RoleConfig).where(RoleConfig.role_name == role_name)
+        )).scalar_one_or_none()
+        if not exists:
+            db.add(RoleConfig(
+                role_name=role_name,
+                label=defaults["label"],
+                description=defaults["description"],
+                visible_at_registration=defaults["visible_at_registration"],
+                permissions=json.dumps(defaults["permissions"]),
+                updated_at=datetime.now(timezone.utc),
+            ))
+    await db.commit()
 
 
 async def seed_db(db: AsyncSession) -> None:

@@ -20,5 +20,5 @@ async def init_db():
     global async_session_maker
     async_session_maker = async_sessionmaker(engine, expire_on_commit=False)
     async with engine.begin() as conn:
-        from models import user, startup, deal, support  # noqa — register all models
+        import models  # noqa — registers all models via __init__.py
         await conn.run_sync(Base.metadata.create_all)

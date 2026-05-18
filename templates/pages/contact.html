@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 {% block title %}Контакты — StartHub{% endblock %}
 {% block content %}
 <div class="static-wrap" style="max-width:960px">
@@ -50,13 +50,13 @@
         <div style="font-size:22px">{{ icon }}</div>
         <div>
           <div style="font-size:12px;color:var(--text-dim);margin-bottom:4px">{{ label }}</div>
-          {% if link %}<a href="{{ link }}" style="font-size:14px;font-weight:500;color:var(--orange2)">{{ val }}</a>
+          {% if link %}<a href="{{ link }}" style="font-size:14px;font-weight:500;color:var(--em2)">{{ val }}</a>
           {% else %}<div style="font-size:14px;font-weight:500">{{ val }}</div>{% endif %}
         </div>
       </div>
       {% endfor %}
 
-      <div style="background:rgba(232,93,38,0.06);border:1px solid rgba(232,93,38,0.2);border-radius:12px;padding:20px;margin-top:4px">
+      <div style="background:rgba(16,185,129,0.05);border:1px solid rgba(16,185,129,0.15);border-radius:12px;padding:20px;margin-top:4px">
         <div style="font-size:14px;font-weight:600;margin-bottom:8px">⏰ Время работы</div>
         <div style="font-size:13px;color:var(--text-muted);line-height:1.7">
           Пн–Пт: 9:00 – 19:00 (МСК)<br>

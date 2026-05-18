@@ -1,22 +1,129 @@
 {% extends "base.html" %}
 {% block title %}Блог — StartHub{% endblock %}
+{% block head %}
+<style>
+.news-page{max-width:1100px;margin:0 auto;padding:60px 24px 80px}
+.news-page-header{margin-bottom:48px}
+.news-hero{display:grid;grid-template-columns:1fr 420px;background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius);overflow:hidden;transition:border-color .25s,box-shadow .25s;margin-bottom:48px;text-decoration:none;color:inherit}
+.news-hero:hover{border-color:var(--card-border-hover);box-shadow:0 8px 40px rgba(16,185,129,.08)}
+.news-hero-body{padding:40px;display:flex;flex-direction:column;justify-content:space-between;gap:20px}
+.news-hero-cover{position:relative;overflow:hidden;min-height:300px}
+.news-hero-cover img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s}
+.news-hero:hover .news-hero-cover img{transform:scale(1.04)}
+.news-hero-cover-ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--em-dark) 0%,var(--surface2) 100%);font-size:96px}
+.nh-badge{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--em2);background:var(--em-dim);padding:4px 10px;border-radius:100px;border:1px solid var(--em-border)}
+.nh-title{font-size:clamp(20px,2.2vw,28px);font-weight:800;line-height:1.3;color:var(--text)}
+.nh-excerpt{font-size:15px;color:var(--text-muted);line-height:1.65}
+.nh-footer{display:flex;align-items:center;gap:14px}
+.nh-read{font-size:14px;font-weight:600;color:var(--em2)}
+.nh-time{font-size:12.5px;color:var(--text-dim)}
+.nc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.nc-link{text-decoration:none;color:inherit;display:block;height:100%}
+.nc{background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius);overflow:hidden;transition:border-color .25s,transform .25s;display:flex;flex-direction:column;height:100%}
+.nc:hover{border-color:var(--card-border-hover);transform:translateY(-3px)}
+.nc-cover{aspect-ratio:16/9;overflow:hidden}
+.nc-cover img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .4s}
+.nc:hover .nc-cover img{transform:scale(1.05)}
+.nc-cover-ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--em-dark) 0%,var(--surface2) 100%);font-size:44px}
+.nc-body{padding:18px;flex:1;display:flex;flex-direction:column;gap:8px}
+.nc-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.nc-cat{font-size:10.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--em2);background:var(--em-dim);padding:3px 8px;border-radius:100px}
+.nc-date{font-size:11.5px;color:var(--text-dim)}
+.nc-title{font-size:14.5px;font-weight:700;line-height:1.4;color:var(--text);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.nc-excerpt{font-size:13px;color:var(--text-muted);line-height:1.55;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;flex:1}
+.nc-footer{display:flex;align-items:center;gap:8px;padding-top:12px;border-top:1px solid var(--card-border);margin-top:auto}
+.nc-time{font-size:11.5px;color:var(--text-dim)}
+.nc-arrow{margin-left:auto;font-size:12.5px;font-weight:600;color:var(--em2)}
+@media(max-width:860px){.news-hero{grid-template-columns:1fr}.news-hero-cover{min-height:220px}}
+@media(max-width:700px){.nc-grid{grid-template-columns:1fr}}
+</style>
+{% endblock %}
 {% block content %}
-<div class="page-wrap">
-  <div class="page-header" style="flex-direction:column;align-items:flex-start">
+<div class="news-page">
+  <div class="news-page-header reveal">
     <div class="section-label">Блог</div>
     <h1 class="section-title" style="margin-bottom:8px">Статьи и инсайты</h1>
     <p style="color:var(--text-muted)">Опыт, аналитика и советы от команды StartHub</p>
   </div>
+
   {% if posts %}
-  <div class="news-grid">
-    {% for p in posts %}
-    <div class="news-card">
-      <div class="news-date">{{ p.created_at.strftime('%d %B %Y') }}</div>
-      <div class="news-title">{{ p.title }}</div>
-      <div class="news-excerpt">{{ (p.body or '')[:200] }}{% if (p.body or '')|length > 200 %}...{% endif %}</div>
+  {% set hero = posts[0] %}
+  {% set hw = (hero.body or '')|wordcount %}
+  {% set hm = (hw // 200) if (hw // 200) >= 1 else 1 %}
+  <a href="/blog/{{ hero.slug }}" class="news-hero reveal">
+    <div class="news-hero-body">
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          {% if hero.category %}<span class="nh-badge">{{ hero.category }}</span>{% endif %}
+          <span style="font-size:13px;color:var(--text-dim)">{{ hero.created_at.strftime('%d %B %Y') }}</span>
+        </div>
+        <div class="nh-title">{{ hero.title }}</div>
+        <div class="nh-excerpt">{{ (hero.excerpt or hero.body or '')[:260] }}{% if (hero.excerpt or hero.body or '')|length > 260 %}...{% endif %}</div>
+      </div>
+      <div class="nh-footer">
+        <span class="nh-read">Читать полностью →</span>
+        <span class="nh-time">{{ hm }} мин чтения</span>
+      </div>
     </div>
+    <div class="news-hero-cover">
+      {% if hero.cover %}
+        <img src="{{ hero.cover }}" alt="{{ hero.title }}">
+      {% else %}
+        <div class="news-hero-cover-ph">✍️</div>
+      {% endif %}
+    </div>
+  </a>
+
+  {% if posts|length > 1 %}
+  <div class="nc-grid">
+    {% for p in posts[1:] %}
+    {% set pw = (p.body or '')|wordcount %}
+    {% set pm = (pw // 200) if (pw // 200) >= 1 else 1 %}
+    <a href="/blog/{{ p.slug }}" class="nc-link reveal">
+      <div class="nc">
+        <div class="nc-cover">
+          {% if p.cover %}
+            <img src="{{ p.cover }}" alt="{{ p.title }}">
+          {% else %}
+            <div class="nc-cover-ph">✍️</div>
+          {% endif %}
+        </div>
+        <div class="nc-body">
+          <div class="nc-meta">
+            {% if p.category %}<span class="nc-cat">{{ p.category }}</span>{% endif %}
+            <span class="nc-date">{{ p.created_at.strftime('%d.%m.%Y') }}</span>
+          </div>
+          <div class="nc-title">{{ p.title }}</div>
+          <div class="nc-excerpt">{{ p.excerpt or (p.body or '')[:180] }}</div>
+          <div class="nc-footer">
+            <span class="nc-time">{{ pm }} мин</span>
+            <span class="nc-arrow">Читать →</span>
+          </div>
+        </div>
+      </div>
+    </a>
     {% endfor %}
   </div>
+  {% endif %}
+
+  {% if total_pages > 1 %}
+  <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:48px;flex-wrap:wrap">
+    {% if page > 1 %}
+    <a href="/blog?page={{ page - 1 }}" class="btn btn-secondary btn-sm">← Назад</a>
+    {% endif %}
+    {% for p in range(1, total_pages + 1) %}
+    <a href="/blog?page={{ p }}"
+       style="display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:8px;font-size:14px;font-weight:600;
+              background:{% if p == page %}var(--em){% else %}var(--card-bg){% endif %};
+              border:1px solid {% if p == page %}var(--em){% else %}var(--card-border){% endif %};
+              color:{% if p == page %}#fff{% else %}var(--text-muted){% endif %}">{{ p }}</a>
+    {% endfor %}
+    {% if page < total_pages %}
+    <a href="/blog?page={{ page + 1 }}" class="btn btn-secondary btn-sm">Вперёд →</a>
+    {% endif %}
+  </div>
+  {% endif %}
+
   {% else %}
   <div class="empty-state">
     <div class="e-icon">✍️</div>

@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 {% block title %}Профиль — StartHub{% endblock %}
 {% block content %}
 <div class="page-wrap">
@@ -11,9 +11,9 @@
       <!-- Avatar & name card -->
       <div style="background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius);padding:28px;text-align:center">
         {% if user.avatar %}
-          <img src="{{ user.avatar }}" style="width:96px;height:96px;border-radius:50%;object-fit:cover;border:3px solid var(--orange);margin-bottom:14px">
+          <img src="{{ user.avatar }}" style="width:96px;height:96px;border-radius:50%;object-fit:cover;border:3px solid var(--em2);margin-bottom:14px">
         {% else %}
-          <div style="width:96px;height:96px;border-radius:50%;background:linear-gradient(135deg,var(--orange),var(--orange3));display:flex;align-items:center;justify-content:center;font-size:36px;font-weight:700;margin:0 auto 14px;border:3px solid var(--orange)">
+          <div style="width:96px;height:96px;border-radius:50%;background:linear-gradient(135deg,var(--em2),var(--em3));display:flex;align-items:center;justify-content:center;font-size:36px;font-weight:700;margin:0 auto 14px;border:3px solid var(--em2)">
             {{ (user.full_name or user.username)[0].upper() }}
           </div>
         {% endif %}
@@ -30,16 +30,25 @@
         <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--text-dim);margin-bottom:14px">Статистика</div>
         <div style="display:flex;flex-direction:column;gap:10px">
           {% if user.role.value == 'author' %}
-          <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--text-muted)">Стартапов</span><span style="font-weight:600;color:var(--orange)">{{ startups_count }}</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--text-muted)">Стартапов</span><span style="font-weight:600;color:var(--em2)">{{ startups_count }}</span></div>
           {% endif %}
           <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--text-muted)">Сделок</span><span style="font-weight:600">{{ deals_count }}</span></div>
           <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--text-muted)">На платформе</span><span style="font-weight:600">{{ (now() - user.created_at).days if now else 0 }} дн.</span></div>
           <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--text-muted)">Уведомлений</span>
-            <span style="font-weight:600;{% if unread_notifs > 0 %}color:var(--orange){% endif %}">{{ unread_notifs }}</span></div>
+            <span style="font-weight:600;{% if unread_notifs > 0 %}color:var(--em2){% endif %}">{{ unread_notifs }}</span></div>
           {% if wallet %}
           <div style="margin-top:4px;padding-top:12px;border-top:1px solid var(--card-border);display:flex;justify-content:space-between;font-size:13px">
             <span style="color:var(--text-muted)">Баланс</span>
-            <span style="font-weight:700;color:var(--orange)">{{ wallet.balance | money }}</span>
+            <span style="font-weight:700;color:var(--em2)">{{ wallet.balance | money }}</span>
+          </div>
+          {% endif %}
+          {% if subscription %}
+          <div style="margin-top:8px;padding:10px 12px;background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.2);border-radius:10px;display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.5px">Тариф</div>
+              <div style="font-size:14px;font-weight:700;color:#4ade80">{{ subscription.effective_plan.emoji }} {{ subscription.effective_plan.label }}</div>
+            </div>
+            <a href="/subscription" style="font-size:12px;color:#34d399;text-decoration:none">Изменить →</a>
           </div>
           {% endif %}
         </div>
@@ -54,23 +63,24 @@
           ('/favorites', '♥', 'Избранное'),
           ('/notifications', '🔔', 'Уведомления'),
           ('/wallet', '💳', 'Кошелёк'),
+          ('/subscription', '⭐', 'Подписка'),
           ('/support', '💬', 'Поддержка'),
         ] %}
         {% if user.role.value == 'author' %}
           {% set nav_items = nav_items + [('/my-startups', '🚀', 'Мои стартапы')] %}
         {% endif %}
         {% for url, icon, label in nav_items %}
-        <a href="{{ url }}" style="display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;font-size:14px;color:{% if request.url.path == url %}var(--orange){% else %}var(--text-muted){% endif %};background:{% if request.url.path == url %}rgba(232,93,38,0.08){% else %}transparent{% endif %};transition:all .2s;margin-bottom:2px">
+        <a href="{{ url }}" style="display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;font-size:14px;color:{% if request.url.path == url %}var(--em2){% else %}var(--text-muted){% endif %};background:{% if request.url.path == url %}rgba(16,185,129,0.07){% else %}transparent{% endif %};transition:all .2s;margin-bottom:2px">
           <span>{{ icon }}</span>{{ label }}
           {% if url == '/notifications' and unread_notifs > 0 %}
-          <span style="margin-left:auto;background:var(--orange);color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:100px">{{ unread_notifs }}</span>
+          <span style="margin-left:auto;background:var(--em2);color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:100px">{{ unread_notifs }}</span>
           {% endif %}
         </a>
         {% endfor %}
         {% if user.role.value in ['admin', 'manager'] %}
         <div style="padding:4px 8px 4px;margin-top:8px;border-top:1px solid var(--card-border)">
           <a href="{% if user.role.value == 'admin' %}/admin/dashboard{% else %}/manager/dashboard{% endif %}"
-            style="display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;font-size:14px;color:var(--orange2);background:rgba(232,93,38,0.06)">
+            style="display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;font-size:14px;color:var(--em2);background:rgba(16,185,129,0.05)">
             ⚙ {% if user.role.value == 'admin' %}Admin Panel{% else %}Manager Panel{% endif %}
           </a>
         </div>
@@ -83,7 +93,7 @@
         {% if user.email %}<div style="font-size:13px;color:var(--text-muted);margin-bottom:6px">📧 {{ user.email }}</div>{% endif %}
         {% if user.phone %}<div style="font-size:13px;color:var(--text-muted);margin-bottom:6px">📞 {{ user.phone }}</div>{% endif %}
         {% if user.telegram %}<div style="font-size:13px;color:var(--text-muted);margin-bottom:6px">✈ {{ user.telegram }}</div>{% endif %}
-        {% if user.website %}<div style="font-size:13px;color:var(--orange2);margin-bottom:6px"><a href="{{ user.website }}" target="_blank">🌐 {{ user.website[:30] }}</a></div>{% endif %}
+        {% if user.website %}<div style="font-size:13px;color:var(--em2);margin-bottom:6px"><a href="{{ user.website }}" target="_blank">🌐 {{ user.website[:30] }}</a></div>{% endif %}
         <div style="font-size:12px;color:var(--text-dim);margin-top:8px">С {{ user.created_at.strftime('%B %Y') }}</div>
       </div>
 
@@ -136,6 +146,55 @@
         </form>
       </div>
 
+      <!-- 2FA Security -->
+      <div style="background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius);padding:32px">
+        <h2 style="font-size:18px;font-weight:700;margin-bottom:6px">Двухфакторная аутентификация</h2>
+        <p style="font-size:13.5px;color:var(--text-muted);margin-bottom:20px">
+          Дополнительный уровень защиты — при входе потребуется код из приложения.
+        </p>
+
+        {% set tfa_msg = request.query_params.get('2fa') %}
+        {% set tfa_err = request.query_params.get('2fa_error') %}
+        {% if tfa_msg == 'enabled' %}
+          <div style="background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.25);border-radius:10px;padding:12px 16px;font-size:13.5px;color:#4ade80;margin-bottom:16px">
+            ✅ 2FA успешно включена
+          </div>
+        {% elif tfa_msg == 'disabled' %}
+          <div style="background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.25);border-radius:10px;padding:12px 16px;font-size:13.5px;color:#fbbf24;margin-bottom:16px">
+            2FA отключена
+          </div>
+        {% elif tfa_err == 'wrong_code' %}
+          <div style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);border-radius:10px;padding:12px 16px;font-size:13.5px;color:#f87171;margin-bottom:16px">
+            ❌ Неверный код. Попробуйте снова.
+          </div>
+        {% endif %}
+
+        {% if user.totp_enabled %}
+          <div style="display:flex;align-items:center;gap:10px;padding:14px 16px;background:rgba(74,222,128,.07);border:1px solid rgba(74,222,128,.2);border-radius:12px;margin-bottom:16px">
+            <span style="font-size:18px">🔒</span>
+            <div><div style="font-weight:600;font-size:14px;color:#4ade80">2FA включена</div>
+            <div style="font-size:12px;color:var(--text-dim)">Вход защищён TOTP-кодом</div></div>
+          </div>
+          <form method="post" action="/settings/2fa/disable" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+            <input type="text" name="code" placeholder="Введите код для отключения"
+                   maxlength="6" inputmode="numeric"
+                   style="flex:1;min-width:160px;background:var(--em-dim2);border:1px solid var(--card-border);border-radius:10px;padding:10px 14px;color:var(--text);font-size:15px;letter-spacing:3px;outline:none">
+            <button type="submit" class="btn btn-sm" style="background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25);color:#f87171;white-space:nowrap">
+              Отключить 2FA
+            </button>
+          </form>
+        {% else %}
+          <div style="display:flex;align-items:center;gap:10px;padding:14px 16px;background:rgba(255,255,255,.03);border:1px solid var(--card-border);border-radius:12px;margin-bottom:16px">
+            <span style="font-size:18px">🔓</span>
+            <div><div style="font-weight:600;font-size:14px">2FA не настроена</div>
+            <div style="font-size:12px;color:var(--text-dim)">Рекомендуется для защиты аккаунта</div></div>
+          </div>
+          <form method="post" action="/settings/2fa/setup">
+            <button type="submit" class="btn btn-primary" style="padding:11px 24px">Включить 2FA</button>
+          </form>
+        {% endif %}
+      </div>
+
       <!-- Recent activity -->
       {% if activity %}
       <div style="background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius);padding:28px">
@@ -143,7 +202,7 @@
         <div style="display:flex;flex-direction:column;gap:0">
           {% for log in activity %}
           <div style="display:flex;gap:14px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.04);align-items:center">
-            <div style="width:36px;height:36px;border-radius:8px;background:rgba(232,93,38,0.1);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">
+            <div style="width:36px;height:36px;border-radius:8px;background:rgba(16,185,129,0.1);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">
               {% if 'login' in log.action %}🔑
               {% elif 'deal' in log.action %}🤝
               {% elif 'startup' in log.action %}🚀
@@ -160,7 +219,7 @@
           </div>
           {% endfor %}
         </div>
-        <a href="/notifications" style="display:block;text-align:center;font-size:13px;color:var(--orange2);margin-top:14px">Все уведомления →</a>
+        <a href="/notifications" style="display:block;text-align:center;font-size:13px;color:var(--em2);margin-top:14px">Все уведомления →</a>
       </div>
       {% endif %}
 

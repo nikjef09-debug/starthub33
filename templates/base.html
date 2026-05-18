@@ -42,6 +42,21 @@
   <div class="nav-right">
     {% if user %}
       <a href="/my-deals" class="btn-ghost">Мои сделки</a>
+      <div class="notif-wrap" id="mainNotifWrap" style="position:relative">
+        <button id="mainBellBtn" onclick="toggleMainNotif(event)" style="background:none;border:none;cursor:pointer;padding:8px;border-radius:10px;color:var(--text-muted);display:flex;align-items:center;position:relative;transition:color .2s" title="Уведомления">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span id="mainBellDot" style="display:none;position:absolute;top:6px;right:6px;width:8px;height:8px;border-radius:50%;background:#ef4444;border:2px solid var(--bg)"></span>
+        </button>
+        <div id="mainNotifDropdown" style="display:none;position:absolute;right:0;top:calc(100% + 8px);width:320px;background:#0e1815;border:1px solid rgba(16,185,129,0.2);border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,0.6);z-index:9999;overflow:hidden">
+          <div style="padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;justify-content:space-between;align-items:center">
+            <span style="font-weight:700;font-size:14px;color:#ecfdf5">Уведомления</span>
+            <a href="/notifications" style="font-size:12px;color:#34d399">Все →</a>
+          </div>
+          <div id="mainNotifList" style="max-height:360px;overflow-y:auto">
+            <div style="padding:20px;text-align:center;color:rgba(236,253,245,0.3);font-size:13px">Загрузка...</div>
+          </div>
+        </div>
+      </div>
       <div class="nav-avatar-wrap">
         <a href="/profile" class="nav-avatar-btn">
           {% if user.avatar %}
@@ -51,9 +66,9 @@
           {% endif %}
           <span>{{ user.full_name or user.username }}</span>
         </a>
-        {% if user.role in ['admin', 'manager'] %}
-          <a href="{% if user.role == 'admin' %}/admin/dashboard{% else %}/manager/dashboard{% endif %}" class="nav-admin-badge">
-            {% if user.role == 'admin' %}Admin{% else %}Manager{% endif %}
+        {% if user.role.value in ['admin', 'developer', 'manager'] or user.custom_role_name %}
+          <a href="{% if user.role.value in ['admin', 'developer'] %}/admin/dashboard{% else %}/manager/dashboard{% endif %}" class="nav-admin-badge">
+            {% if user.role.value == 'admin' %}Admin{% elif user.role.value == 'developer' %}Dev{% elif user.role.value == 'manager' %}Manager{% else %}Панель{% endif %}
           </a>
         {% endif %}
         <a href="/logout" class="btn-ghost" style="font-size:13px;padding:7px 14px">Выйти</a>
@@ -64,6 +79,17 @@
     {% endif %}
   </div>
 </nav>
+
+{% if user and not user.email_verified %}
+<div style="background:rgba(251,191,36,0.1);border-bottom:1px solid rgba(251,191,36,0.2);padding:9px 20px;text-align:center;font-size:13px;color:#fbbf24;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap">
+  <span>⚠️ Ваш email <strong>{{ user.email }}</strong> не подтверждён</span>
+  <form method="post" action="/resend-verification" style="display:inline">
+    <button type="submit" style="background:none;border:none;cursor:pointer;font-size:13px;color:#4ade80;font-weight:600;padding:0;font-family:inherit">
+      Отправить письмо снова →
+    </button>
+  </form>
+</div>
+{% endif %}
 
 {% block content %}{% endblock %}
 
@@ -109,6 +135,8 @@
         <li><a href="/about">О нас</a></li>
         <li><a href="/contact">Контакты</a></li>
         <li><a href="/terms">Соглашение</a></li>
+        <li><a href="/privacy">Политика конфиденциальности</a></li>
+        <li><a href="/consent">Согласие на данные</a></li>
         <li><a href="/support">Поддержка</a></li>
       </ul>
     </div>
@@ -116,7 +144,8 @@
   <div class="footer-bottom">
     <p>© 2026 ООО «Содействие». Все права защищены.</p>
     <div class="footer-bottom-links">
-      <a href="/terms">Конфиденциальность</a>
+      <a href="/privacy">Политика конфиденциальности</a>
+      <a href="/consent">Согласие на данные</a>
       <a href="/terms">Пользовательское соглашение</a>
     </div>
   </div>
@@ -153,7 +182,7 @@
         Отправить обращение
       </button>
       <p style="text-align:center;margin-top:12px;font-size:13px;color:var(--text-dim)">
-        Или напишите: <a href="mailto:support@starthub.ru" style="color:var(--em2)">support@starthub.ru</a>
+        Или напишите: <a href="mailto:support@starthub33.ru" style="color:var(--em2)">support@starthub33.ru</a>
       </p>
     </form>
     {% else %}
@@ -165,7 +194,7 @@
         <a href="/register" class="btn-em">Зарегистрироваться</a>
       </div>
       <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--card-border)">
-        <a href="mailto:support@starthub.ru" style="color:var(--em2);font-size:14px">support@starthub.ru</a>
+        <a href="mailto:support@starthub33.ru" style="color:var(--em2);font-size:14px">support@starthub33.ru</a>
       </div>
     </div>
     {% endif %}
@@ -211,5 +240,141 @@ document.addEventListener('keydown', e => {
 </script>
 
 {% block scripts %}{% endblock %}
+
+<script>
+async function loadMainNotifs() {
+  try {
+    const r = await fetch('/api/notifications');
+    if (!r.ok) return;
+    const data = await r.json();
+    const list = document.getElementById('mainNotifList');
+    const dot = document.getElementById('mainBellDot');
+    if (!list) return;
+    if (!data.length) {
+      list.innerHTML = '<div style="padding:20px;text-align:center;color:rgba(236,253,245,0.3);font-size:13px">Нет уведомлений</div>';
+      return;
+    }
+    const unread = data.filter(n => !n.is_read);
+    if (dot) dot.style.display = unread.length ? 'block' : 'none';
+    list.innerHTML = data.map(n => `
+      <a href="${n.link || '/notifications'}" style="display:block;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.04);text-decoration:none;transition:background .15s" onmouseover="this.style.background='rgba(16,185,129,0.07)'" onmouseout="this.style.background=''">
+        <div style="font-size:13px;font-weight:${n.is_read ? 400 : 600};color:#ecfdf5;margin-bottom:2px">${escN(n.title)}</div>
+        <div style="font-size:12px;color:rgba(236,253,245,0.5)">${escN(n.body)}</div>
+        ${!n.is_read ? '<div style="width:6px;height:6px;border-radius:50%;background:#10b981;float:right;margin-top:-18px"></div>' : ''}
+      </a>`).join('');
+  } catch(e) {}
+}
+function escN(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function toggleMainNotif(e) {
+  e.stopPropagation();
+  const d = document.getElementById('mainNotifDropdown');
+  const isOpen = d.style.display !== 'none';
+  d.style.display = isOpen ? 'none' : 'block';
+  if (!isOpen) loadMainNotifs();
+}
+document.addEventListener('click', () => {
+  const d = document.getElementById('mainNotifDropdown');
+  if (d) d.style.display = 'none';
+});
+// Показываем dot при загрузке если есть непрочитанные
+(async () => {
+  try {
+    const r = await fetch('/api/notifications');
+    if (!r.ok) return;
+    const data = await r.json();
+    const dot = document.getElementById('mainBellDot');
+    if (dot && data.filter(n=>!n.is_read).length) dot.style.display = 'block';
+  } catch(e) {}
+})();
+</script>
+
+<script>
+// ── Custom Select (main site) ──────────────────────────────────────────────────
+(function(){
+  function buildCS(sel){
+    if(sel.dataset.csBuilt) return;
+    sel.dataset.csBuilt = '1';
+    sel.style.display = 'none';
+
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'position:relative;width:100%';
+    sel.parentNode.insertBefore(wrap, sel);
+    wrap.appendChild(sel);
+
+    const trigger = document.createElement('div');
+    trigger.setAttribute('tabindex','0');
+    trigger.setAttribute('role','combobox');
+    trigger.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:11px 16px;background:rgba(16,185,129,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;color:var(--text);font-size:14px;font-family:inherit;cursor:pointer;transition:border-color .2s,background .2s,box-shadow .2s;user-select:none;min-height:44px;';
+    trigger.innerHTML = `<span style="flex:1;text-align:left">${getLabel(sel)}</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(16,185,129,0.7)" stroke-width="2.5" style="flex-shrink:0;transition:transform .2s"><polyline points="6 9 12 15 18 9"/></svg>`;
+    wrap.insertBefore(trigger, sel);
+
+    const dropdown = document.createElement('div');
+    dropdown.style.cssText = 'display:none;position:absolute;top:100%;left:0;right:0;z-index:9999;background:#0e1815;border:1px solid rgba(16,185,129,0.22);border-top:none;border-bottom-left-radius:12px;border-bottom-right-radius:12px;overflow:hidden;box-shadow:0 16px 48px rgba(0,0,0,0.6);';
+
+    function rebuildOptions(){
+      dropdown.innerHTML = '';
+      Array.from(sel.children).forEach(child => {
+        if(child.tagName==='OPTGROUP'){
+          const lbl = document.createElement('div');
+          lbl.style.cssText = 'padding:8px 14px 4px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#34d399;opacity:.7';
+          lbl.textContent = child.label;
+          dropdown.appendChild(lbl);
+          Array.from(child.children).forEach(addOpt);
+        } else if(child.tagName==='OPTION'){
+          addOpt(child);
+        }
+      });
+    }
+
+    function addOpt(opt){
+      const div = document.createElement('div');
+      div.style.cssText = `display:flex;align-items:center;padding:10px 16px;font-size:13.5px;cursor:pointer;transition:background .12s,color .12s;color:${opt.selected?'#34d399':'rgba(236,253,245,0.6)'};background:${opt.selected?'rgba(16,185,129,0.08)':'transparent'};font-weight:${opt.selected?'600':'400'}`;
+      div.dataset.value = opt.value;
+      div.textContent = opt.textContent.trim();
+      div.addEventListener('mouseover',()=>{ if(!opt.selected) div.style.background='rgba(16,185,129,0.07)';div.style.color='#ecfdf5'; });
+      div.addEventListener('mouseout',()=>{ div.style.background=opt.selected?'rgba(16,185,129,0.08)':'transparent';div.style.color=opt.selected?'#34d399':'rgba(236,253,245,0.6)'; });
+      div.addEventListener('click',e=>{
+        e.stopPropagation();
+        sel.value = opt.value;
+        sel.dispatchEvent(new Event('change',{bubbles:true}));
+        trigger.querySelector('span').textContent = opt.textContent.trim();
+        close();
+      });
+      dropdown.appendChild(div);
+    }
+
+    function getLabel(s){ const o=s.options[s.selectedIndex]; return o?o.textContent.trim():'—'; }
+    const arrow = trigger.querySelector('svg');
+
+    function open(){
+      rebuildOptions();
+      dropdown.style.display='block';
+      trigger.style.borderColor='rgba(16,185,129,0.5)';
+      trigger.style.boxShadow='0 0 0 3px rgba(16,185,129,0.12)';
+      trigger.style.borderBottomLeftRadius='0';
+      trigger.style.borderBottomRightRadius='0';
+      if(arrow) arrow.style.transform='rotate(180deg)';
+      wrap.appendChild(dropdown);
+    }
+    function close(){
+      dropdown.style.display='none';
+      trigger.style.borderColor='rgba(255,255,255,0.08)';
+      trigger.style.boxShadow='none';
+      trigger.style.borderBottomLeftRadius='12px';
+      trigger.style.borderBottomRightRadius='12px';
+      if(arrow) arrow.style.transform='rotate(0)';
+    }
+
+    trigger.addEventListener('click',e=>{ e.stopPropagation(); dropdown.style.display==='none'?open():close(); });
+    trigger.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){e.preventDefault();dropdown.style.display==='none'?open():close();} if(e.key==='Escape')close(); });
+    document.addEventListener('click', close);
+  }
+
+  function initAll(){ document.querySelectorAll('select:not([data-cs-skip])').forEach(s=>{ if(!s.dataset.csBuilt) buildCS(s); }); }
+  document.addEventListener('DOMContentLoaded', initAll);
+  new MutationObserver(initAll).observe(document.documentElement,{childList:true,subtree:true});
+})();
+</script>
+
 </body>
 </html>

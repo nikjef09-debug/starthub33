@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(.venv/Scripts/python.exe -c \"import models; print\\('models OK'\\)\")",
+      "Bash(.venv/Scripts/python.exe -c \"from routers import admin; print\\('admin OK'\\)\")",
+      "Bash(.venv/Scripts/python.exe -c \"from routers import auth; print\\('auth OK'\\)\")",
+      "Bash(.venv/Scripts/python.exe -c \"from services.settings import get_all_settings; print\\('settings OK'\\)\")",
+      "Bash(.venv/Scripts/python.exe -c ' *)",
+      "Bash(Get-ChildItem -Recurse)",
+      "Bash(Select-Object FullName)",
+      "Bash(Sort-Object FullName)",
+      "Bash(python -c \"import pyotp; import qrcode; print\\('OK: pyotp', pyotp.__version__, '| qrcode', qrcode.__version__\\)\")",
+      "Bash(python -c \"import pyotp; import qrcode; print\\('OK'\\)\")"
+    ]
+  }
+}

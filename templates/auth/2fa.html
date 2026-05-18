@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Двухфакторная аутентификация — StartHub{% endblock %}
+{% block head %}
+<style>
+.auth-box{max-width:420px;margin:80px auto;padding:0 20px}
+.auth-card{background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius);padding:40px}
+.auth-icon{width:64px;height:64px;background:var(--em-dim);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 24px}
+.auth-title{text-align:center;font-size:22px;font-weight:800;margin-bottom:8px}
+.auth-sub{text-align:center;font-size:14px;color:var(--text-muted);margin-bottom:28px;line-height:1.5}
+.form-group{margin-bottom:18px}
+.form-group label{display:block;font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+.form-group input{width:100%;background:var(--em-dim2);border:1px solid var(--card-border);border-radius:10px;padding:13px 16px;color:var(--text);font-family:inherit;font-size:18px;letter-spacing:4px;text-align:center;outline:none;transition:border-color .2s}
+.form-group input:focus{border-color:var(--em-border);background:var(--em-dim)}
+.err{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);border-radius:10px;padding:12px 16px;font-size:13.5px;color:#f87171;margin-bottom:18px;text-align:center}
+</style>
+{% endblock %}
+{% block content %}
+<div class="auth-box">
+  <div class="auth-card reveal">
+    <div class="auth-icon">🔐</div>
+    <div class="auth-title">Двухфакторная аутентификация</div>
+    <div class="auth-sub">Введите 6-значный код из приложения-аутентификатора (Google Authenticator, Authy и др.)</div>
+
+    {% if error %}
+    <div class="err">{{ error }}</div>
+    {% endif %}
+
+    <form method="post" action="/auth/2fa-verify">
+      <div class="form-group">
+        <label>Код подтверждения</label>
+        <input type="text" name="code" placeholder="000000" maxlength="6"
+               inputmode="numeric" autocomplete="one-time-code" autofocus required>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%;padding:14px;font-size:15px;justify-content:center">
+        Подтвердить
+      </button>
+    </form>
+
+    <p style="text-align:center;margin-top:20px;font-size:13px;color:var(--text-dim)">
+      <a href="/login" style="color:var(--em2)">← Вернуться к входу</a>
+    </p>
+  </div>
+</div>
+{% endblock %}
